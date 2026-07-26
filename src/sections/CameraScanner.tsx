@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useWebcam } from '../hooks/useWebcam';
-import { useOpenCv } from '../hooks/useOpenCv';
+import { useMediaPipe } from '../hooks/useMediaPipe';
 import Button from '../components/Button';
-import { Camera, AlertTriangle, CheckCircle, Info, Sliders, Settings } from 'lucide-react';
+import { Camera, AlertTriangle, CheckCircle, Info, Sliders, Settings, RefreshCw } from 'lucide-react';
 import type { UserPreferences } from '../engine/recommendationEngine';
 
 interface CameraScannerProps {
-  onCaptureCompleted: (capturedCanvas: HTMLCanvasElement, preferences: UserPreferences) => void;
+  onCaptureCompleted: (
+    capturedCanvas: HTMLCanvasElement,
+    preferences: UserPreferences,
+    isSimulator: boolean,
+    postureMode?: 'neutral' | 'tilted' | 'curved',
+    landmarks?: any[]
+  ) => void;
 }
 
 export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted }) => {
-  const { isOpenCvReady, loadingError } = useOpenCv();
+  const { poseLandmarker, isMediaPipeReady, loadingError } = useMediaPipe();
   const webcam = useWebcam();
   
   const [useSimulator, setUseSimulator] = useState<boolean>(true);
+  const [isFlipped, setIsFlipped] = useState<boolean>(true);
   const [simulatorPosture, setSimulatorPosture] = useState<'neutral' | 'tilted' | 'curved'>('neutral');
   const [isPreferencePhase, setIsPreferencePhase] = useState<boolean>(true);
 
@@ -54,6 +61,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
     }
   };
 
+  const overlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const latestLandmarksRef = useRef<any[] | null>(null);
+
   // Generate alignment guide instructions dynamically
   useEffect(() => {
     if (isPreferencePhase) return;
@@ -69,30 +79,138 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
       setAlignmentMessage('⚠ Accessing camera stream...');
       return;
     }
+  }, [useSimulator, webcam.isCameraActive, isPreferencePhase]);
 
-    // Simulate simple optical feedback checks over time
-    const messages = [
-      { msg: '⚠ Step backwards 2-3 meters to fit guide', status: 'warning' as const },
-      { msg: '⚠ Align shoulder width box inside vertical bars', status: 'warning' as const },
-      { msg: '✓ Alignment matched. Please hold still...', status: 'success' as const }
-    ];
-
-    let step = 0;
-    setAlignmentMessage(messages[0].msg);
-    setAlignmentStatus(messages[0].status);
-
-    const timer = setInterval(() => {
-      step++;
-      if (step < messages.length) {
-        setAlignmentMessage(messages[step].msg);
-        setAlignmentStatus(messages[step].status);
-      } else {
-        clearInterval(timer);
+  // Real-time MediaPipe Pose landmark tracking and skeleton overlay drawing
+  useEffect(() => {
+    if (useSimulator || !webcam.isCameraActive || !poseLandmarker || !isMediaPipeReady) {
+      // Clear overlay canvas if we are not actively tracking
+      if (overlayCanvasRef.current) {
+        const ctx = overlayCanvasRef.current.getContext('2d');
+        ctx?.clearRect(0, 0, overlayCanvasRef.current.width, overlayCanvasRef.current.height);
       }
-    }, 2500);
+      latestLandmarksRef.current = null;
+      return;
+    }
 
-    return () => clearInterval(timer);
-  }, [useSimulator, webcam.isCameraActive, simulatorPosture, isPreferencePhase]);
+    const video = activeVideoRef.current;
+    const canvas = overlayCanvasRef.current;
+    if (!video || !canvas) return;
+
+    let active = true;
+    let animationFrameId: number;
+
+    const detectPose = () => {
+      if (!active) return;
+
+      if (video.readyState >= 2) {
+        // Match canvas dimensions to video
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          try {
+            const timestamp = performance.now();
+            const results = poseLandmarker.detectForVideo(video, timestamp);
+
+            if (results && results.landmarks && results.landmarks.length > 0) {
+              const landmarks = results.landmarks[0];
+              latestLandmarksRef.current = landmarks;
+
+              // Check landmarks visibility (shoulders and hips)
+              const shL = landmarks[11];
+              const shR = landmarks[12];
+              const hipL = landmarks[23];
+              const hipR = landmarks[24];
+
+              const threshold = 0.5;
+              const jointsVisible = (shL?.visibility ?? 0) > threshold &&
+                                    (shR?.visibility ?? 0) > threshold &&
+                                    (hipL?.visibility ?? 0) > threshold &&
+                                    (hipR?.visibility ?? 0) > threshold;
+
+              if (!jointsVisible) {
+                setAlignmentStatus('warning');
+                setAlignmentMessage('⚠ Please step backward to fit your full body in the guide');
+              } else {
+                // Check horizontal alignment
+                const shMidX = (shL.x + shR.x) / 2;
+                if (shMidX < 0.35 || shMidX > 0.65) {
+                  setAlignmentStatus('warning');
+                  setAlignmentMessage('⚠ Position yourself in the center of the camera');
+                } else {
+                  setAlignmentStatus('success');
+                  setAlignmentMessage('✓ Alignment matched. Please hold still...');
+                }
+              }
+
+              // Draw bones live on overlay canvas (cyber glowing design)
+              const drawBone = (p1Idx: number, p2Idx: number, color: string) => {
+                const pt1 = landmarks[p1Idx];
+                const pt2 = landmarks[p2Idx];
+                if (pt1 && pt2 && (pt1.visibility ?? 0) > 0.4 && (pt2.visibility ?? 0) > 0.4) {
+                  ctx.strokeStyle = color;
+                  ctx.lineWidth = 3.5;
+                  ctx.beginPath();
+                  ctx.moveTo(pt1.x * canvas.width, pt1.y * canvas.height);
+                  ctx.lineTo(pt2.x * canvas.width, pt2.y * canvas.height);
+                  ctx.stroke();
+                }
+              };
+
+              // Draw shoulder-hip-torso structures
+              drawBone(11, 12, 'rgba(56, 169, 250, 0.85)');
+              drawBone(11, 23, 'rgba(56, 169, 250, 0.7)');
+              drawBone(12, 24, 'rgba(56, 169, 250, 0.7)');
+              drawBone(23, 24, 'rgba(56, 169, 250, 0.85)');
+
+              // Draw leg structures
+              drawBone(23, 25, 'rgba(99, 102, 241, 0.7)');
+              drawBone(25, 27, 'rgba(99, 102, 241, 0.7)');
+              drawBone(24, 26, 'rgba(99, 102, 241, 0.7)');
+              drawBone(26, 28, 'rgba(99, 102, 241, 0.7)');
+
+              // Draw joint anchor points
+              landmarks.forEach((lm, idx) => {
+                if ([0, 11, 12, 23, 24, 25, 26, 27, 28].includes(idx) && (lm.visibility ?? 0) > 0.4) {
+                  ctx.fillStyle = '#10b981';
+                  ctx.beginPath();
+                  ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5.5, 0, 2 * Math.PI);
+                  ctx.fill();
+                  
+                  ctx.strokeStyle = '#ffffff';
+                  ctx.lineWidth = 1.5;
+                  ctx.beginPath();
+                  ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5.5, 0, 2 * Math.PI);
+                  ctx.stroke();
+                }
+              });
+            } else {
+              latestLandmarksRef.current = null;
+              setAlignmentStatus('error');
+              setAlignmentMessage('⚠ Scanning for silhouette... Keep standing upright');
+            }
+          } catch (err) {
+            console.error('Error in pose detection loop:', err);
+          }
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(detectPose);
+    };
+
+    detectPose();
+
+    return () => {
+      active = false;
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [useSimulator, webcam.isCameraActive, poseLandmarker, isMediaPipeReady]);
 
   // Handle switching from simulator to live camera
   const handleToggleSource = async (toLive: boolean) => {
@@ -196,13 +314,13 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
       }
 
       ctx.shadowBlur = 0; // reset
-      onCaptureCompleted(canvas, preferences);
+      onCaptureCompleted(canvas, preferences, true, simulatorPosture);
     } else {
       // Capture from raw webcam stream
       const success = webcam.captureFrame(canvas);
       if (success) {
         webcam.stopWebcam();
-        onCaptureCompleted(canvas, preferences);
+        onCaptureCompleted(canvas, preferences, false, undefined, latestLandmarksRef.current || undefined);
       }
     }
   };
@@ -384,14 +502,14 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 </div>
               ) : null}
 
-              {/* OpenCV.js Loading Skeleton */}
-              {!isOpenCvReady ? (
+              {/* MediaPipe Loading Skeleton */}
+              {!isMediaPipeReady ? (
                 <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-center p-6 space-y-4 z-30">
                   <div className="w-10 h-10 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
                   <div>
-                    <p className="text-sm font-semibold">Compiling Digital Sleep Clinic...</p>
+                    <p className="text-sm font-semibold">Initializing AI Posture Tracker...</p>
                     <p className="text-xs text-slate-500 font-light mt-1 max-w-[240px]">
-                      Loading optical contour calibration engine (OpenCV.js WebAssembly).
+                      Loading neural-network pose model (MediaPipe Tasks-Vision).
                     </p>
                   </div>
                   {loadingError && (
@@ -452,9 +570,17 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                       {/* Video Stream Element */}
                       <video
                         ref={activeVideoRef}
-                        className="w-full h-full object-cover transform -scale-x-100"
+                        className="w-full h-full object-cover"
+                        style={{ transform: isFlipped ? 'scaleX(-1)' : 'none' }}
                         playsInline
                         muted
+                      />
+
+                      {/* Live skeleton overlay */}
+                      <canvas
+                        ref={overlayCanvasRef}
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        style={{ transform: isFlipped ? 'scaleX(-1)' : 'none' }}
                       />
 
                       {/* Stand guide overlay on top of video */}
@@ -481,7 +607,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
               )}
 
               {/* Scanning visual sweep bar when camera or simulator is ready */}
-              {!isPreferencePhase && isOpenCvReady && (
+              {!isPreferencePhase && isMediaPipeReady && (
                 <div className="absolute left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-brand-400 to-transparent shadow-lg shadow-brand-500/50 animate-scan pointer-events-none" />
               )}
             </div>
@@ -525,6 +651,17 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
               {/* Device selectors & Capture Button triggers */}
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 
+                {/* Mirror Preview Toggle */}
+                {!useSimulator && webcam.isCameraActive && (
+                  <button
+                    onClick={() => setIsFlipped(!isFlipped)}
+                    className="px-3.5 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-full text-slate-350 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    {isFlipped ? "Unmirror Preview" : "Mirror Preview"}
+                  </button>
+                )}
+                
                 {/* Device Selector drop if live mode */}
                 {!useSimulator && webcam.devices.length > 1 ? (
                   <div className="flex items-center gap-2 w-full sm:w-auto bg-slate-900 border border-slate-800 rounded-full px-3 py-1.5">
@@ -550,7 +687,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 {/* Capture Execution CTA */}
                 <Button
                   variant="gold"
-                  disabled={isPreferencePhase || (!useSimulator && !webcam.isCameraActive) || !isOpenCvReady}
+                  disabled={isPreferencePhase || (!useSimulator && !webcam.isCameraActive) || !isMediaPipeReady}
                   onClick={handleCapture}
                   className="w-full sm:w-auto bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-700 hover:to-gold-600 text-slate-950 font-bold px-8 py-3 rounded-full flex items-center justify-center gap-2"
                 >

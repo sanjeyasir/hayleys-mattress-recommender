@@ -40,10 +40,23 @@ function App() {
     scrollToSection('scanner');
   };
 
+  const [isSimulator, setIsSimulator] = useState<boolean>(true);
+  const [simulatorPosture, setSimulatorPosture] = useState<'neutral' | 'tilted' | 'curved'>('neutral');
+  const [capturedLandmarks, setCapturedLandmarks] = useState<any[] | null>(null);
+
   // Called when camera captures frame successfully
-  const handleCaptureCompleted = (canvas: HTMLCanvasElement, prefs: UserPreferences) => {
+  const handleCaptureCompleted = (
+    canvas: HTMLCanvasElement,
+    prefs: UserPreferences,
+    isSim: boolean,
+    posture?: 'neutral' | 'tilted' | 'curved',
+    landmarks?: any[]
+  ) => {
     setCapturedCanvas(canvas);
     setPreferences(prefs);
+    setIsSimulator(isSim);
+    if (posture) setSimulatorPosture(posture);
+    setCapturedLandmarks(landmarks || null);
     setFlowState('analyzing');
     scrollToSection('scanner'); // Keep user positioned at scanning block
   };
@@ -130,6 +143,9 @@ function App() {
             <BodyAnalysis
               capturedCanvas={capturedCanvas}
               preferences={preferences}
+              isSimulator={isSimulator}
+              simulatorPosture={simulatorPosture}
+              landmarks={capturedLandmarks}
               onAnalysisCompleted={handleAnalysisCompleted}
             />
           )}

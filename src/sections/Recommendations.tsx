@@ -43,7 +43,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
   // SVG representation map for mattress thumbnails
   const renderMattressGraphic = (id: string) => {
     const graphics: Record<string, React.ReactNode> = {
-      'hayleys-spine-fit': (
+      'spine-fit': (
         <svg className="w-full h-32 text-slate-200" viewBox="0 0 160 80">
           <rect x="10" y="10" width="140" height="60" rx="8" fill="#1e293b" />
           {/* Ortho spine lines */}
@@ -52,7 +52,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
           <text x="35" y="45" fill="#ffffff" className="text-[9px] font-bold tracking-wider font-sans">SPINE SUPPORT</text>
         </svg>
       ),
-      'hayleys-memoire': (
+      'memoire': (
         <svg className="w-full h-32 text-slate-200" viewBox="0 0 160 80">
           <rect x="10" y="10" width="140" height="60" rx="8" fill="#1d4ed8" />
           {/* Foam layers */}
@@ -62,7 +62,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
           <text x="45" y="42" fill="#ffffff" className="text-[9px] font-bold tracking-wider font-sans">MEMORY FOAM</text>
         </svg>
       ),
-      'hayleys-royal-touch': (
+      'royal-touch': (
         <svg className="w-full h-32 text-slate-200" viewBox="0 0 160 80">
           <rect x="10" y="10" width="140" height="60" rx="8" fill="#047857" />
           {/* Latex pins */}
@@ -81,7 +81,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
           <text x="40" y="45" fill="#ffffff" className="text-[9px] font-bold tracking-wider font-sans">NATURAL LATEX</text>
         </svg>
       ),
-      'hayleys-signature-spring': (
+      'signature-spring': (
         <svg className="w-full h-32 text-slate-200" viewBox="0 0 160 80">
           <rect x="10" y="10" width="140" height="60" rx="8" fill="#475569" />
           {/* Springs representation */}
@@ -89,7 +89,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
           <text x="40" y="42" fill="#ffffff" className="text-[9px] font-bold tracking-wider font-sans">POCKET SPRINGS</text>
         </svg>
       ),
-      'hayleys-ortho-support': (
+      'ortho-support': (
         <svg className="w-full h-32 text-slate-200" viewBox="0 0 160 80">
           <rect x="10" y="10" width="140" height="60" rx="8" fill="#701a75" />
           {/* Dual side split */}
@@ -101,7 +101,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
     };
     return graphics[id] || (
       <div className="w-full h-32 bg-brand-800 rounded-xl flex items-center justify-center text-white text-xs font-bold">
-        HAYLEYS QUALITY
+        PREMIUM QUALITY
       </div>
     );
   };
@@ -414,7 +414,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
 
               <div className="space-y-6">
                 <div className="flex items-center gap-2">
-                  <Badge variant="gold">HAYLEYS PREMIUM RANGE</Badge>
+                  <Badge variant="gold">PREMIUM RANGE</Badge>
                   <span className="text-xs text-slate-400">Model Specifications</span>
                 </div>
 

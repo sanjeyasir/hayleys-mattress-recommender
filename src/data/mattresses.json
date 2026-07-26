@@ -1,7 +1,7 @@
 [
   {
-    "id": "hayleys-spine-fit",
-    "name": "Hayleys Spine Fit Orthopedic",
+    "id": "spine-fit",
+    "name": "Spine Fit Orthopedic",
     "image": "spine_fit",
     "description": "Engineered for maximum spine protection. Combines rubberized coir and high-density orthopedic support foam for premium alignment correction.",
     "firmness": 9,
@@ -16,8 +16,8 @@
     "whyMatchExplain": "Your posture scan shows a spine deviation that requires structural support. Spine Fit's extra-firm rubberized coir keeps your lower lumbar from sinking, promoting ideal anatomical alignment."
   },
   {
-    "id": "hayleys-memoire",
-    "name": "Hayleys Memoire Luxury Foam",
+    "id": "memoire",
+    "name": "Memoire Luxury Foam",
     "image": "memoire",
     "description": "Luxurious body-contouring memory foam mattress designed to adapt to your unique shape, offering unparalleled pressure relief and weight distribution.",
     "firmness": 4,
@@ -32,8 +32,8 @@
     "whyMatchExplain": "Based on your body proportions and high shoulder-to-hip ratio, you experience higher pressure spikes when sleeping. Memoire wraps around pressure points at your shoulders and hips, reducing sleep tossing."
   },
   {
-    "id": "hayleys-royal-touch",
-    "name": "Hayleys Royal Touch Natural Latex",
+    "id": "royal-touch",
+    "name": "Royal Touch Natural Latex",
     "image": "royal_touch",
     "description": "100% natural latex mattress offering resilient bounce, customized response, and natural temperature regulation for an eco-conscious luxury sleep.",
     "firmness": 7,
@@ -48,8 +48,8 @@
     "whyMatchExplain": "Your body symmetry and balanced measurements match perfectly with Natural Latex. It offers dynamic push-back support and outstanding cooling, helping you sleep cool and maintain natural spine neutrality."
   },
   {
-    "id": "hayleys-signature-spring",
-    "name": "Hayleys Signature Pocketed Spring",
+    "id": "signature-spring",
+    "name": "Signature Pocketed Spring",
     "image": "signature_spring",
     "description": "Premium pocketed spring technology that moves independently to contour perfectly to your body curves, providing exceptional zero-motion-transfer comfort.",
     "firmness": 6,
@@ -64,8 +64,8 @@
     "whyMatchExplain": "Your alignment scan shows minor shoulder tilt and symmetrical curves. The independent pocket springs flex individually under your shoulders and hips, correcting micro-misalignments dynamically."
   },
   {
-    "id": "hayleys-ortho-support",
-    "name": "Hayleys Orthopaedic Support",
+    "id": "ortho-support",
+    "name": "Orthopaedic Support",
     "image": "ortho_support",
     "description": "Dual-comfort orthopedic mattress featuring a firm coir side and a supportive foam side, giving you the choice of tailoring support for therapeutic sleep.",
     "firmness": 8,

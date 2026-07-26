@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { analyzeStandingPosture } from '../cv/postureAnalysis';
+import { analyzeMediaPipePosture, getMockLandmarks } from '../cv/mediaPipeAnalysis';
 import { calculateRecommendations } from '../engine/recommendationEngine';
 import type { UserPreferences } from '../engine/recommendationEngine';
 import type { BodyProfile, RecommendationResult } from '../types';
@@ -9,6 +9,9 @@ import { Sparkles, Eye, ShieldAlert, Cpu } from 'lucide-react';
 interface BodyAnalysisProps {
   capturedCanvas: HTMLCanvasElement;
   preferences: UserPreferences;
+  isSimulator: boolean;
+  simulatorPosture?: 'neutral' | 'tilted' | 'curved';
+  landmarks: any[] | null;
   onAnalysisCompleted: (
     profile: BodyProfile,
     recommendations: RecommendationResult[],
@@ -19,6 +22,9 @@ interface BodyAnalysisProps {
 export const BodyAnalysis: React.FC<BodyAnalysisProps> = ({
   capturedCanvas,
   preferences,
+  isSimulator,
+  simulatorPosture = 'neutral',
+  landmarks,
   onAnalysisCompleted
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -27,7 +33,7 @@ export const BodyAnalysis: React.FC<BodyAnalysisProps> = ({
 
   const steps = [
     { label: "Decoding optical coordinate frame...", icon: <Cpu className="w-5 h-5" /> },
-    { label: "Isolating skeletal boundaries & contours...", icon: <Eye className="w-5 h-5" /> },
+    { label: "Generating skeletal neural landmarks...", icon: <Eye className="w-5 h-5" /> },
     { label: "Measuring shoulder tilt & hip geometry...", icon: <Sparkles className="w-5 h-5" /> },
     { label: "Mapping 5-point support load zones...", icon: <ShieldAlert className="w-5 h-5" /> }
   ];
@@ -58,7 +64,7 @@ export const BodyAnalysis: React.FC<BodyAnalysisProps> = ({
     setCurrentStep(stepIndex);
   }, [progress, steps.length]);
 
-  // 3. Perform OpenCV analysis & output results when progress finishes
+  // 3. Perform MediaPipe analysis & output results when progress finishes
   useEffect(() => {
     if (progress < 100) return;
 
@@ -68,8 +74,14 @@ export const BodyAnalysis: React.FC<BodyAnalysisProps> = ({
         const debugCanvas = processedCanvasRef.current;
         if (!debugCanvas) return;
 
-        // Run actual OpenCV logic on captured canvas
-        const bodyProfile = analyzeStandingPosture(capturedCanvas, debugCanvas);
+        // Resolve landmarks (either from props or mock values)
+        let actualLandmarks = landmarks;
+        if (isSimulator || !actualLandmarks) {
+          actualLandmarks = getMockLandmarks(simulatorPosture);
+        }
+
+        // Run MediaPipe geometry calculation and canvas drawing logic
+        const bodyProfile = analyzeMediaPipePosture(actualLandmarks, capturedCanvas, debugCanvas);
         
         // Run rule-based scoring engine
         const recommendations = calculateRecommendations(bodyProfile, preferences);
@@ -84,7 +96,7 @@ export const BodyAnalysis: React.FC<BodyAnalysisProps> = ({
     }, 500);
 
     return () => clearTimeout(delayTimer);
-  }, [progress, capturedCanvas, preferences, onAnalysisCompleted]);
+  }, [progress, capturedCanvas, preferences, isSimulator, simulatorPosture, landmarks, onAnalysisCompleted]);
 
   return (
     <section className="min-h-[70vh] py-24 bg-slate-950 text-white flex items-center relative overflow-hidden">

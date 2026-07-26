@@ -38,7 +38,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartAssessment }) => {
             className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-950 leading-[1.1]"
           >
             Find Your Perfect <br />
-            <span className="text-gradient">Hayleys Mattress</span>
+            <span className="text-gradient">SleepMatch Mattress</span>
           </motion.h1>
 
           <motion.p 
@@ -47,7 +47,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartAssessment }) => {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="text-lg md:text-xl text-slate-600 font-light max-w-xl leading-relaxed"
           >
-            Discover your ideal sleep support through intelligent posture scans. Our rule-based alignment analysis identifies pressure zones and matches you with Hayleys Mattress orthopedic technology.
+            Discover your ideal sleep support through intelligent posture scans. Our rule-based alignment analysis identifies pressure zones and matches you with orthopedic mattress technology.
           </motion.p>
 
           <motion.div 
@@ -114,7 +114,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartAssessment }) => {
               <div className="flex justify-between items-start">
                 <div>
                   <h4 className="text-xs text-slate-400 font-semibold uppercase tracking-widest">Postural Map</h4>
-                  <p className="text-sm font-medium">Hayleys SleepClinic</p>
+                  <p className="text-sm font-medium">SmartSleep Clinic</p>
                 </div>
                 <div className="px-2 py-0.5 rounded bg-brand-500/20 border border-brand-500 text-[10px] text-brand-300">
                   CV Engine Active

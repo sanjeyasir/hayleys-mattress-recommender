@@ -15,7 +15,7 @@ export interface UserPreferences {
 
 /**
  * Executes the rule-based scoring engine to determine compatibility scores
- * between the calculated body profile, user choices, and the Hayleys Mattress catalog.
+ * between the calculated body profile, user choices, and the mattress catalog.
  * Returns an array of RecommendationResults sorted by match percentage.
  */
 export const calculateRecommendations = (
@@ -70,7 +70,7 @@ export const calculateRecommendations = (
     // --- RULE 4: Spine Support Boost ---
     // If spine alignment requires correction, favor orthopedic coir models (Spine Fit or Ortho Support)
     if (bodyProfile.spineAlignmentRating === 'Requires Support') {
-      if (mattress.keyTechnologies.includes('Rubberized Coir') || mattress.id === 'hayleys-spine-fit') {
+      if (mattress.keyTechnologies.includes('Rubberized Coir') || mattress.id === 'spine-fit') {
         score += 15;
         reasons.push(`Boosted match: The high-density Coir layers provide rigid support needed to align your spine.`);
       } else {

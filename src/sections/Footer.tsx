@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
               <Sparkles className="w-4.5 h-4.5 text-gold-400" />
             </div>
             <div>
-              <h4 className="text-sm font-extrabold tracking-widest text-white leading-none">HAYLEYS MATTRESS</h4>
+              <h4 className="text-sm font-extrabold tracking-widest text-white leading-none">SLEEPMATCH</h4>
               <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest block mt-0.5">
                 SLEEPMATCH EXPERIENCE
               </span>
@@ -47,10 +47,10 @@ export const Footer: React.FC = () => {
         <div className="md:col-span-3 space-y-4">
           <h5 className="text-xs font-bold uppercase tracking-wider text-slate-350">Company info</h5>
           <p className="text-xs font-light text-slate-400 leading-relaxed">
-            Hayleys Fiber PLC<br />
+            SmartSleep Solutions<br />
             Mattress & Comfort Solutions Division.<br />
             Colombo, Sri Lanka.<br />
-            Email: info@hayleysmattress.com
+            Email: info@mattressrecommender.com
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export const Footer: React.FC = () => {
       {/* Copyright info */}
       <div className="max-w-7xl mx-auto px-6 pt-8 flex flex-col sm:flex-row justify-between items-center text-[10px] text-slate-500 font-light gap-4">
         <div>
-          © {new Date().getFullYear()} Hayleys Fiber PLC. All Rights Reserved.
+          © {new Date().getFullYear()} SmartSleep Solutions. All Rights Reserved.
         </div>
         <div className="flex items-center gap-1">
           <span>Crafted with</span>

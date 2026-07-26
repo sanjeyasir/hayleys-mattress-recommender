@@ -20,13 +20,13 @@ export const HowItWorks: React.FC = () => {
       id: 3,
       icon: <Layers className="w-6 h-6 text-brand-700" />,
       title: "Analyze Support Levels",
-      description: "Our OpenCV.js script calculates shoulder tilt, hip proportions, spine deviation, and maps pressure zones."
+      description: "Our AI posture engine calculates shoulder tilt, hip proportions, spine deviation, and maps pressure zones."
     },
     {
       id: 4,
       icon: <Award className="w-6 h-6 text-brand-700" />,
       title: "Get Match Recommendations",
-      description: "Instantly receive a detailed compatibility report matching you with customized Hayleys Mattress models."
+      description: "Instantly receive a detailed compatibility report matching you with customized premium mattress models."
     }
   ];
 

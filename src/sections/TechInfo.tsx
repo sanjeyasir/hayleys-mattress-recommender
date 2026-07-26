@@ -66,7 +66,7 @@ export const TechInfo: React.FC = () => {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <span className="text-xs font-semibold text-brand-600 uppercase tracking-widest block">SLEEP SCIENCE</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-            Hayleys Sleep Technology
+            SmartSleep Technology
           </h2>
           <p className="text-slate-600 font-light leading-relaxed">
             Every mattress core is built on specialized material engineering designed to resolve back aches, improve deep sleep cycles, and control hot temperatures.

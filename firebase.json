@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "mattress-recommender-app",
     "public": "dist",
     "ignore": [
       "firebase.json",

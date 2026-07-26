@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartAssessment }) => {
           </div>
           <div>
             <h1 className="text-sm font-extrabold tracking-widest text-slate-950 leading-none">
-              HAYLEYS MATTRESS
+              SLEEPMATCH
             </h1>
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
               SLEEPMATCH CLINIC
