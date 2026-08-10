@@ -8,6 +8,9 @@ import Recommendations from './sections/Recommendations';
 import Comparison from './sections/Comparison';
 import TechInfo from './sections/TechInfo';
 import Footer from './sections/Footer';
+import CatalogueViewerModal from './components/CatalogueViewerModal';
+import AlgorithmExplainerModal from './components/AlgorithmExplainerModal';
+import SplashScreen from './components/SplashScreen';
 
 import type { BodyProfile, RecommendationResult, Mattress } from './types';
 import type { UserPreferences } from './engine/recommendationEngine';
@@ -15,6 +18,7 @@ import type { UserPreferences } from './engine/recommendationEngine';
 type FlowState = 'idle' | 'analyzing' | 'results';
 
 function App() {
+  const [showSplash, setShowSplash] = useState<boolean>(true);
   const [flowState, setFlowState] = useState<FlowState>('idle');
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   
@@ -26,6 +30,10 @@ function App() {
   
   // Comparison deck
   const [compareList, setCompareList] = useState<Mattress[]>([]);
+
+  // Modals state
+  const [isCatalogueOpen, setIsCatalogueOpen] = useState<boolean>(false);
+  const [isExplainerOpen, setIsExplainerOpen] = useState<boolean>(false);
 
   // Smooth scroll handler to target elements
   const scrollToSection = (id: string) => {
@@ -61,7 +69,7 @@ function App() {
     scrollToSection('scanner'); // Keep user positioned at scanning block
   };
 
-  // Called when OpenCV analysis loader finishes
+  // Called when OpenCV / MediaPipe analysis loader finishes
   const handleAnalysisCompleted = (
     profile: BodyProfile,
     recs: RecommendationResult[],
@@ -121,17 +129,39 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-brand-50/20">
-      {/* Premium Header */}
-      <Header onStartAssessment={handleStartAssessment} />
+    <div className="flex flex-col min-h-screen bg-brand-50/20 font-sans">
+      {/* 0. Business Splash Screen on Initial Visit */}
+      {showSplash && (
+        <SplashScreen
+          onStartAssessment={() => {
+            setShowSplash(false);
+            setFlowState('idle');
+            setTimeout(() => scrollToSection('scanner'), 150);
+          }}
+          onOpenCatalogue={() => setIsCatalogueOpen(true)}
+          onOpenExplainer={() => setIsExplainerOpen(true)}
+        />
+      )}
 
-      {/* Main Single Page Content */}
+      {/* Hayleys Premium Header */}
+      <Header 
+        onStartAssessment={handleStartAssessment} 
+        onOpenCatalogue={() => setIsCatalogueOpen(true)}
+        onOpenExplainer={() => setIsExplainerOpen(true)}
+        onOpenSplash={() => setShowSplash(true)}
+      />
+
+      {/* Main Content Sections */}
       <main className="flex-grow pt-20">
         {/* 1. Hero Section */}
-        <Hero onStartAssessment={handleStartAssessment} />
+        <Hero 
+          onStartAssessment={handleStartAssessment} 
+          onOpenCatalogue={() => setIsCatalogueOpen(true)}
+          onOpenExplainer={() => setIsExplainerOpen(true)}
+        />
 
         {/* 2. How It Works Section */}
-        <HowItWorks />
+        <HowItWorks onOpenExplainer={() => setIsExplainerOpen(true)} />
 
         {/* 3. Interactive Arena (Scanner / Loading / Results) */}
         <div id="scanner" className="scroll-mt-20">
@@ -158,6 +188,8 @@ function App() {
               onReset={handleReset}
               onAddToCompare={handleAddToCompare}
               compareList={compareList}
+              onOpenCatalogue={() => setIsCatalogueOpen(true)}
+              onOpenExplainer={() => setIsExplainerOpen(true)}
             />
           )}
         </div>
@@ -167,6 +199,7 @@ function App() {
           compareList={compareList}
           onRemove={handleRemoveFromCompare}
           onClear={handleClearCompare}
+          onOpenCatalogue={() => setIsCatalogueOpen(true)}
         />
 
         {/* 5. Sleep Science & Tech Info */}
@@ -174,7 +207,22 @@ function App() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer 
+        onOpenCatalogue={() => setIsCatalogueOpen(true)}
+        onOpenExplainer={() => setIsExplainerOpen(true)}
+      />
+
+      {/* Interactive Catalogue Modal */}
+      <CatalogueViewerModal
+        isOpen={isCatalogueOpen}
+        onClose={() => setIsCatalogueOpen(false)}
+      />
+
+      {/* Algorithm Science & Mathematical Derivation Modal */}
+      <AlgorithmExplainerModal
+        isOpen={isExplainerOpen}
+        onClose={() => setIsExplainerOpen(false)}
+      />
     </div>
   );
 }

@@ -1,32 +1,36 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { UserCheck, Camera, Layers, Award } from 'lucide-react';
+import { UserCheck, Camera, Layers, Award, Compass } from 'lucide-react';
 
-export const HowItWorks: React.FC = () => {
+interface HowItWorksProps {
+  onOpenExplainer?: () => void;
+}
+
+export const HowItWorks: React.FC<HowItWorksProps> = ({ onOpenExplainer }) => {
   const steps = [
     {
       id: 1,
       icon: <UserCheck className="w-6 h-6 text-brand-700" />,
-      title: "Stand Naturally",
-      description: "Stand relaxed, facing the camera. Wear fitting clothing for the most precise contour calculation."
+      title: "1. Posture & Sleep Profile",
+      description: "Select your preferred sleeping position (Back, Side, Stomach, Combo), weight range, and comfort priorities (cooling, motion isolation, pressure relief)."
     },
     {
       id: 2,
       icon: <Camera className="w-6 h-6 text-brand-700" />,
-      title: "Capture Your Body Profile",
-      description: "Align your torso within the digital human silhouette guide and snap a snapshot of your standing posture."
+      title: "2. Optical Geometry Scan",
+      description: "Stand upright in front of your camera or use the digital simulator. MediaPipe calculates shoulder tilt, hip width, and plumb-line spine deviation."
     },
     {
       id: 3,
       icon: <Layers className="w-6 h-6 text-brand-700" />,
-      title: "Analyze Support Levels",
-      description: "Our AI posture engine calculates shoulder tilt, hip proportions, spine deviation, and maps pressure zones."
+      title: "3. 5-Zone Biomechanics",
+      description: "The algorithm computes load percentages across cervical, thoracic, lumbar, pelvic, and lower limb contact zones to derive your Target Firmness Score (1–10)."
     },
     {
       id: 4,
       icon: <Award className="w-6 h-6 text-brand-700" />,
-      title: "Get Match Recommendations",
-      description: "Instantly receive a detailed compatibility report matching you with customized premium mattress models."
+      title: "4. Hayleys Mattress Matching",
+      description: "Every Hayleys Spring, Rubberized Coir, and Foam mattress is evaluated with explainable mathematical formulas to find your optimal ergonomic match."
     }
   ];
 
@@ -49,18 +53,30 @@ export const HowItWorks: React.FC = () => {
   };
 
   return (
-    <section id="how-it-works" className="bg-slate-50 py-24 border-y border-slate-100">
+    <section id="how-it-works" className="bg-slate-50 py-24 border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-6">
         
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-          <span className="text-xs font-semibold text-brand-600 uppercase tracking-widest block">HOW IT WORKS</span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-            Scientific Sleeping Analysis
+          <span className="text-xs font-bold text-brand-600 uppercase tracking-widest block">SCIENTIFIC METHODOLOGY</span>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+            How The Hayleys SleepMatcher Works
           </h2>
           <p className="text-slate-600 font-light leading-relaxed">
-            Our dual-stage matching process merges classical optical geometry with orthopedic sleep sciences. No AI assumptions—pure, explainable math.
+            Our multi-stage diagnostic engine pairs client-side Computer Vision with orthopedic biomechanics. No guesswork—every recommendation is 100% mathematically derived.
           </p>
+
+          {onOpenExplainer && (
+            <div className="pt-2">
+              <button
+                onClick={onOpenExplainer}
+                className="inline-flex items-center gap-2 text-xs font-bold text-brand-700 hover:text-brand-900 bg-white px-4 py-2 rounded-full border border-brand-200 shadow-2xs transition-all cursor-pointer"
+              >
+                <Compass className="w-4 h-4 text-brand-600" />
+                Explore Detailed Algorithm Equations & Derivations →
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Steps Grid */}
@@ -75,11 +91,11 @@ export const HowItWorks: React.FC = () => {
             <motion.div
               key={step.id}
               variants={cardVariants}
-              className="bg-white rounded-3xl p-8 border border-slate-100 premium-shadow premium-shadow-hover relative flex flex-col justify-between"
+              className="bg-white rounded-3xl p-8 border border-slate-200/80 premium-shadow premium-shadow-hover relative flex flex-col justify-between"
             >
               <div>
                 {/* Step Number Badge */}
-                <div className="absolute top-6 right-6 text-6xl font-black text-brand-100/50 font-serif leading-none select-none">
+                <div className="absolute top-6 right-6 text-5xl font-black text-slate-100 font-mono leading-none select-none">
                   0{step.id}
                 </div>
 
@@ -89,8 +105,8 @@ export const HowItWorks: React.FC = () => {
                 </div>
 
                 {/* Text Details */}
-                <h3 className="text-lg font-bold text-slate-900 mb-3">{step.title}</h3>
-                <p className="text-sm text-slate-500 font-light leading-relaxed">{step.description}</p>
+                <h3 className="text-base font-bold text-slate-900 mb-3">{step.title}</h3>
+                <p className="text-xs text-slate-500 font-light leading-relaxed">{step.description}</p>
               </div>
             </motion.div>
           ))}
