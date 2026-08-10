@@ -19,7 +19,7 @@ import {
   Edit3
 } from 'lucide-react';
 import type { UserPreferences } from '../types';
-import { getMockLandmarks, CANONICAL_SKELETON_CONNECTIONS } from '../cv/mediaPipeAnalysis';
+import { CANONICAL_SKELETON_CONNECTIONS } from '../cv/mediaPipeAnalysis';
 
 interface CameraScannerProps {
   onCaptureCompleted: (
@@ -80,6 +80,8 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
 
   const overlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const latestLandmarksRef = useRef<any[] | null>(null);
+  const smoothedLandmarksRef = useRef<any[] | null>(null);
+  const lastTimestampRef = useRef<number>(0);
 
   // Generate alignment guide instructions dynamically
   useEffect(() => {
@@ -98,10 +100,11 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
     }
   }, [useSimulator, webcam.isCameraActive, activeStep]);
 
-  const lastTimestampRef = useRef<number>(0);
-  const smoothedLandmarksRef = useRef<any[] | null>(null);
+  // Real-time MediaPipe Pose landmark tracking, alignment scoring, and skeleton overlay
+  const [alignmentScore, setAlignmentScore] = useState<number>(0);
+  const [isReadyToCapture, setIsReadyToCapture] = useState<boolean>(false);
+  const stabilityCounterRef = useRef<number>(0);
 
-  // Real-time MediaPipe Pose landmark tracking and skeleton overlay drawing with anti-jitter smoothing
   useEffect(() => {
     if (useSimulator || !webcam.isCameraActive) {
       if (overlayCanvasRef.current) {
@@ -110,6 +113,8 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
       }
       latestLandmarksRef.current = null;
       smoothedLandmarksRef.current = null;
+      setAlignmentScore(useSimulator ? 100 : 0);
+      setIsReadyToCapture(useSimulator);
       return;
     }
 
@@ -147,13 +152,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
               }
             }
 
-            // If MediaPipe is not ready or failed, provide optical fallback landmarks
-            if (!rawLandmarks) {
-              rawLandmarks = getMockLandmarks('neutral');
-            }
-
+            // ONLY process and draw when an actual human pose is detected (NO fake default skeleton)
             if (rawLandmarks && rawLandmarks.length > 0) {
-              // --- ADAPTIVE EMA TEMPORAL SMOOTHING (ELIMINATES JITTER & FLICKER) ---
+              // --- ADAPTIVE EMA TEMPORAL SMOOTHING ---
               const prevSmoothed = smoothedLandmarksRef.current;
               const smoothed: any[] = [];
 
@@ -164,9 +165,8 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 if (!prev || !curr) {
                   smoothed[i] = curr ? { ...curr } : null;
                 } else {
-                  // Dynamic smoothing factor based on velocity
                   const dist = Math.hypot(curr.x - prev.x, curr.y - prev.y);
-                  const alpha = Math.min(0.70, Math.max(0.22, dist * 8)); // 0.22 when still (rock solid), 0.70 when moving
+                  const alpha = Math.min(0.70, Math.max(0.25, dist * 8));
 
                   smoothed[i] = {
                     x: prev.x + alpha * (curr.x - prev.x),
@@ -182,40 +182,81 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
 
               const shL = smoothed[11];
               const shR = smoothed[12];
-
-              // Proximity calculation: Distance between shoulders
-              const shoulderSpan = (shL && shR) ? Math.abs(shR.x - shL.x) : 0.3;
+              const hipL = smoothed[23];
+              const hipR = smoothed[24];
+              const nose = smoothed[0];
 
               const threshold = 0.35;
-              const torsoVisible = (shL?.visibility ?? 0) > threshold && (shR?.visibility ?? 0) > threshold;
+              const shouldersVisible = (shL?.visibility ?? 0) > threshold && (shR?.visibility ?? 0) > threshold;
+              const hipsVisible = (hipL?.visibility ?? 0) > threshold && (hipR?.visibility ?? 0) > threshold;
+              const headVisible = (nose?.visibility ?? 0) > threshold;
 
-              if (!torsoVisible) {
-                setAlignmentStatus('warning');
-                setAlignmentMessage('⚠ Stand inside the frame facing the camera');
-              } else if (shoulderSpan > 0.58) {
-                // User is standing too close to camera
-                setAlignmentStatus('warning');
-                setAlignmentMessage('⚠ Step backward slightly for full torso alignment');
-              } else if (shoulderSpan < 0.16) {
-                // User is too far away
-                setAlignmentStatus('warning');
-                setAlignmentMessage('⚠ Step forward into the calibration guide');
+              // --- COMPUTE ALIGNMENT QUALITY SCORE ---
+              let score = 0;
+              let statusMsg = '';
+              let statusType: 'error' | 'warning' | 'success' = 'warning';
+
+              if (!shouldersVisible) {
+                statusMsg = '⚠ Step into the frame facing the camera';
+                statusType = 'warning';
+                score = 20;
               } else {
+                score += 35; // Shoulders visible
+                if (hipsVisible) score += 25; // Hips visible
+                if (headVisible) score += 15; // Head visible
+
+                const shoulderSpan = Math.abs(shR.x - shL.x);
                 const shMidX = (shL.x + shR.x) / 2;
-                if (shMidX < 0.32 || shMidX > 0.68) {
-                  setAlignmentStatus('warning');
-                  setAlignmentMessage('⚠ Center yourself in front of the lens');
+
+                // Centering (ideal: 0.5)
+                const centerDeviation = Math.abs(shMidX - 0.5);
+                if (centerDeviation < 0.12) {
+                  score += 15;
+                } else if (centerDeviation < 0.20) {
+                  score += 8;
+                }
+
+                // Distance span check
+                if (shoulderSpan > 0.56) {
+                  statusMsg = '⚠ Step backward slightly for full torso alignment';
+                  statusType = 'warning';
+                  score = Math.min(score, 60);
+                } else if (shoulderSpan < 0.15) {
+                  statusMsg = '⚠ Step forward into the calibration guide';
+                  statusType = 'warning';
+                  score = Math.min(score, 60);
+                } else if (centerDeviation >= 0.15) {
+                  statusMsg = '⚠ Center yourself in front of the lens';
+                  statusType = 'warning';
+                  score = Math.min(score, 70);
                 } else {
-                  setAlignmentStatus('success');
-                  setAlignmentMessage('✓ Posture stabilized! Ready to calculate spinal balance');
+                  score += 10; // Good distance & center
+                  if (score >= 80) {
+                    statusType = 'success';
+                    statusMsg = '✓ Perfect stance! Hold steady to take your photo';
+                  } else {
+                    statusMsg = '✓ Silhouette detected! Adjust posture to complete alignment';
+                  }
                 }
               }
 
-              // --- DRAW SMOOTHED INTERCONNECTED SKELETON ON LIVE WEBCAM ---
+              // Stability verification
+              if (score >= 80) {
+                stabilityCounterRef.current = Math.min(30, stabilityCounterRef.current + 1);
+              } else {
+                stabilityCounterRef.current = Math.max(0, stabilityCounterRef.current - 2);
+              }
+
+              const ready = score >= 80 && stabilityCounterRef.current >= 6;
+              setAlignmentScore(score);
+              setIsReadyToCapture(ready);
+              setAlignmentStatus(statusType);
+              setAlignmentMessage(ready ? '✓ Optimal Alignment Detected! You are ready to take the photo' : statusMsg);
+
+              // --- DRAW AUTHENTIC SKELETON ON LIVE WEBCAM ---
               const w = canvas.width;
               const h = canvas.height;
 
-              // Landmark coordinate accessor with boundary clamping
               const getPt = (idx: number) => {
                 const pt = smoothed[idx];
                 if (!pt || (pt.visibility ?? 0) < threshold) return null;
@@ -226,17 +267,17 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
               };
 
               // 1. Draw glowing canonical bone connections
-              ctx.lineWidth = 3.5;
+              ctx.lineWidth = ready ? 4 : 3;
               ctx.lineCap = 'round';
               ctx.lineJoin = 'round';
-              ctx.shadowBlur = 8;
-              ctx.shadowColor = '#0284c7';
+              ctx.shadowBlur = ready ? 12 : 6;
+              ctx.shadowColor = ready ? '#10b981' : '#0284c7';
 
               CANONICAL_SKELETON_CONNECTIONS.forEach(([fromIdx, toIdx, color]) => {
                 const p1 = getPt(fromIdx);
                 const p2 = getPt(toIdx);
                 if (p1 && p2) {
-                  ctx.strokeStyle = color;
+                  ctx.strokeStyle = ready ? '#34d399' : color;
                   ctx.beginPath();
                   ctx.moveTo(p1.x, p1.y);
                   ctx.lineTo(p2.x, p2.y);
@@ -244,7 +285,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 }
               });
 
-              // 2. Draw Anatomical Spine Midline
+              // 2. Draw Spine Midline
               const pShL = getPt(11);
               const pShR = getPt(12);
               const pHipL = getPt(23);
@@ -255,14 +296,12 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 const shMid = { x: (pShL.x + pShR.x) / 2, y: (pShL.y + pShR.y) / 2 };
                 const hipMid = { x: (pHipL.x + pHipR.x) / 2, y: (pHipL.y + pHipR.y) / 2 };
                 
-                // Plumb line deviation
                 const dev = Math.abs(shMid.x - hipMid.x);
-                ctx.shadowBlur = 12;
+                ctx.shadowBlur = 10;
                 ctx.shadowColor = dev > 15 ? '#ef4444' : '#10b981';
                 ctx.strokeStyle = dev > 15 ? '#f87171' : '#34d399';
-                ctx.lineWidth = 4;
+                ctx.lineWidth = ready ? 4.5 : 3.5;
                 
-                // Spine line
                 ctx.beginPath();
                 if (pNose) {
                   ctx.moveTo(pNose.x, pNose.y);
@@ -286,30 +325,32 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
 
               ctx.shadowBlur = 0;
 
-              // 3. Draw Joint Nodes with pulse ring
+              // 3. Draw Joint Nodes
               const activeJointIndices = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
               activeJointIndices.forEach((idx) => {
                 const pt = getPt(idx);
                 if (pt) {
-                  // Joint outer ring
-                  ctx.fillStyle = idx === 0 ? '#10b981' : (idx === 11 || idx === 12) ? '#38bdf8' : '#f59e0b';
+                  ctx.fillStyle = ready ? '#10b981' : idx === 0 ? '#10b981' : (idx === 11 || idx === 12) ? '#38bdf8' : '#f59e0b';
                   ctx.beginPath();
-                  ctx.arc(pt.x, pt.y, 5.5, 0, 2 * Math.PI);
+                  ctx.arc(pt.x, pt.y, ready ? 6 : 5, 0, 2 * Math.PI);
                   ctx.fill();
 
-                  // Joint white center
                   ctx.strokeStyle = '#ffffff';
                   ctx.lineWidth = 1.5;
                   ctx.beginPath();
-                  ctx.arc(pt.x, pt.y, 5.5, 0, 2 * Math.PI);
+                  ctx.arc(pt.x, pt.y, ready ? 6 : 5, 0, 2 * Math.PI);
                   ctx.stroke();
                 }
               });
             } else {
+              // NO HUMAN IN FRAME: DO NOT LOAD A DEFAULT SKELETON
               latestLandmarksRef.current = null;
               smoothedLandmarksRef.current = null;
-              setAlignmentStatus('error');
-              setAlignmentMessage('⚠ Scanning for silhouette... Keep standing upright facing the lens');
+              stabilityCounterRef.current = 0;
+              setAlignmentScore(0);
+              setIsReadyToCapture(false);
+              setAlignmentStatus('warning');
+              setAlignmentMessage('⚠ Scanning for silhouette... Step into the camera frame');
             }
           } catch (err) {
             console.error('Error in pose detection loop:', err);
@@ -680,7 +721,11 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
             </div>
 
             {/* Canvas/Video Viewfinder screen */}
-            <div className="relative flex-grow my-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center overflow-hidden min-h-[300px] sm:min-h-[350px]">
+            <div className={`relative flex-grow my-4 bg-slate-900 border rounded-2xl flex items-center justify-center overflow-hidden min-h-[300px] sm:min-h-[350px] transition-all duration-300 ${
+              isReadyToCapture 
+                ? 'border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.25)]' 
+                : 'border-slate-800'
+            }`}>
               
               {!isMediaPipeReady && !useSimulator ? (
                 <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-center p-6 space-y-4 z-30">
@@ -757,41 +802,74 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                         style={{ transform: isFlipped ? 'scaleX(-1)' : 'none' }}
                       />
 
+                      {/* Optical Silhouette Guide HUD */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <svg className="w-full h-full max-w-[260px] max-h-[340px] text-emerald-500/30" viewBox="0 0 220 300">
+                        <svg className={`w-full h-full max-w-[260px] max-h-[340px] transition-all duration-300 ${
+                          isReadyToCapture ? 'text-emerald-400/40 scale-105' : 'text-slate-500/25'
+                        }`} viewBox="0 0 220 300">
                           <path
                             d="M110,40 C125,40 135,50 135,65 C135,80 125,90 110,90 C95,90 85,80 85,65 C85,50 95,40 110,40 Z M60,110 L160,110 C175,110 180,120 180,135 C180,150 170,220 170,260 C170,280 160,290 145,290 C135,290 130,280 130,260 L130,200 L90,200 L90,260 C90,280 85,290 75,290 C60,290 50,280 50,260 C50,220 40,150 40,135 C40,120 45,110 60,110 Z"
                             fill="none"
                             stroke="currentColor"
-                            strokeWidth="2"
-                            strokeDasharray="4 4"
+                            strokeWidth="1.5"
+                            strokeDasharray={isReadyToCapture ? "none" : "4 4"}
                           />
                         </svg>
-                        <div className="absolute top-[20%] inset-x-0 border-t border-brand-500/30 w-full" />
-                        <div className="absolute top-[60%] inset-x-0 border-t border-brand-500/30 w-full" />
+                        <div className={`absolute top-[20%] inset-x-0 border-t transition-all ${isReadyToCapture ? 'border-emerald-500/30' : 'border-slate-700/30'} w-full`} />
+                        <div className={`absolute top-[60%] inset-x-0 border-t transition-all ${isReadyToCapture ? 'border-emerald-500/30' : 'border-slate-700/30'} w-full`} />
                       </div>
+
+                      {/* Live Alignment HUD Indicator Top Floating Pill */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                        <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1.5 backdrop-blur-md transition-all ${
+                          isReadyToCapture
+                            ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/50 shadow-md'
+                            : alignmentScore > 30
+                              ? 'bg-slate-950/80 text-amber-300 border border-amber-500/30'
+                              : 'bg-slate-950/80 text-slate-400 border border-slate-800'
+                        }`}>
+                          <span className={`w-2 h-2 rounded-full ${isReadyToCapture ? 'bg-emerald-400 animate-ping' : alignmentScore > 30 ? 'bg-amber-400' : 'bg-slate-500'}`} />
+                          <span>Alignment: {alignmentScore}%</span>
+                        </div>
+
+                        {isReadyToCapture && (
+                          <div className="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black tracking-wider uppercase shadow-lg shadow-emerald-500/30 flex items-center gap-1 animate-bounce">
+                            <CheckCircle className="w-3.5 h-3.5" /> Ready to Shoot
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Center Ready-to-Shoot Big Notification Badge */}
+                      {isReadyToCapture && (
+                        <div className="absolute bottom-4 inset-x-4 pointer-events-none flex justify-center">
+                          <div className="px-4 py-2 rounded-2xl bg-emerald-950/90 border border-emerald-400/80 text-white text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-fade-in">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                            <span className="text-emerald-200">Optimal Alignment Locked — You can now take the photo!</span>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
               )}
 
-              {isMediaPipeReady && (
-                <div className="absolute left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-brand-400 to-transparent shadow-lg shadow-brand-500/50 animate-scan pointer-events-none" />
+              {isMediaPipeReady && !isReadyToCapture && (
+                <div className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-brand-400 to-transparent shadow-lg shadow-brand-500/50 animate-scan pointer-events-none" />
               )}
             </div>
 
             {/* Bottom Controls Panel */}
             <div className="z-10 space-y-4">
               <div className={`p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 border text-xs transition-all ${
-                alignmentStatus === 'success'
-                  ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
+                alignmentStatus === 'success' || isReadyToCapture
+                  ? 'bg-emerald-950/70 border-emerald-700 text-emerald-200 shadow-sm'
                   : alignmentStatus === 'warning'
                     ? 'bg-amber-950/60 border-amber-800 text-amber-300'
                     : 'bg-rose-950/60 border-rose-800 text-rose-300'
               }`}>
                 <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 shrink-0" />
-                  <span className="font-light tracking-wide text-[11px] sm:text-xs">{alignmentMessage}</span>
+                  <Info className={`w-4 h-4 shrink-0 ${isReadyToCapture ? 'text-emerald-400' : ''}`} />
+                  <span className="font-medium tracking-wide text-[11px] sm:text-xs">{alignmentMessage}</span>
                 </div>
                 {useSimulator && (
                   <div className="flex gap-1">
@@ -855,10 +933,14 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                   variant="gold"
                   disabled={(!useSimulator && !webcam.isCameraActive) || (!useSimulator && !isMediaPipeReady)}
                   onClick={handleCapture}
-                  className="w-full sm:w-auto bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-700 hover:to-gold-600 text-slate-950 font-bold px-7 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                  className={`w-full sm:w-auto font-bold px-7 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all duration-300 ${
+                    isReadyToCapture
+                      ? 'bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 shadow-emerald-500/40 ring-4 ring-emerald-500/30 animate-pulse'
+                      : 'bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-700 hover:to-gold-600 text-slate-950'
+                  }`}
                 >
                   <Camera className="w-4 h-4" />
-                  Capture & Calculate Match
+                  {isReadyToCapture ? '✓ Take Photo Now' : 'Capture & Calculate Match'}
                 </Button>
               </div>
             </div>

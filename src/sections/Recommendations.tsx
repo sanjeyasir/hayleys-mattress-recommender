@@ -6,6 +6,7 @@ import Button from '../components/Button';
 import DerivationDetailModal from '../components/DerivationDetailModal';
 import EngineeringExplainerCard from '../components/EngineeringExplainerCard';
 import PrescriptionReportModal from '../components/PrescriptionReportModal';
+import Interactive3DPostureViewer from '../components/Interactive3DPostureViewer';
 import { 
   Activity, 
   Sparkles, 
@@ -20,7 +21,8 @@ import {
   Award,
   Cpu,
   BedDouble,
-  Download
+  Download,
+  Rotate3d
 } from 'lucide-react';
 
 interface RecommendationsProps {
@@ -47,6 +49,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
   const [selectedMattress, setSelectedMattress] = useState<Mattress | null>(null);
   const [inspectDerivationRec, setInspectDerivationRec] = useState<RecommendationResult | null>(null);
   const [activeTabMode, setActiveTabMode] = useState<'matches' | 'engineering'>('matches');
+  const [geometryViewMode, setGeometryViewMode] = useState<'2d' | '3d'>('3d');
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   
   // The first recommendation is our optimal match
@@ -215,22 +218,51 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
                 <Activity className="w-5 h-5 text-brand-800" />
                 <h3 className="text-base font-bold text-slate-950">1. Standing Biometric Geometry</h3>
               </div>
-              <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                FRAME ANALYZED
-              </span>
-            </div>
-
-            {/* OpenCV Overlay Visual */}
-            <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center min-h-[220px] max-h-[290px] shadow-inner">
-              <img 
-                src={debugCanvasUrl} 
-                alt="Skeletal contour scan" 
-                className="w-full h-full object-contain max-h-[290px]"
-              />
-              <div className="absolute bottom-3 left-3 bg-slate-950/85 border border-slate-800 px-3 py-1 rounded-lg text-[10px] font-mono text-emerald-400">
-                θ: {bodyProfile.shoulderTiltAngle}° • ΔS: {bodyProfile.spineDeviationPx}px
+              
+              {/* 2D vs 3D View Mode Toggle */}
+              <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button
+                  onClick={() => setGeometryViewMode('3d')}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                    geometryViewMode === '3d'
+                      ? 'bg-slate-950 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-950'
+                  }`}
+                >
+                  <Rotate3d className="w-3 h-3 text-gold-400" />
+                  <span>3D Hologram</span>
+                </button>
+                <button
+                  onClick={() => setGeometryViewMode('2d')}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                    geometryViewMode === '2d'
+                      ? 'bg-white text-slate-950 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-950'
+                  }`}
+                >
+                  <span>2D Scan</span>
+                </button>
               </div>
             </div>
+
+            {/* 3D Holographic Posture Model OR 2D OpenCV Overlay Visual */}
+            {geometryViewMode === '3d' ? (
+              <Interactive3DPostureViewer 
+                bodyProfile={bodyProfile} 
+                className="min-h-[400px] sm:min-h-[460px] md:min-h-[500px]"
+              />
+            ) : (
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center min-h-[340px] sm:min-h-[400px] shadow-inner">
+                <img 
+                  src={debugCanvasUrl} 
+                  alt="Skeletal contour scan" 
+                  className="w-full h-full object-contain max-h-[400px]"
+                />
+                <div className="absolute bottom-3 left-3 bg-slate-950/85 border border-slate-800 px-3 py-1 rounded-lg text-[10px] font-mono text-emerald-400">
+                  θ: {bodyProfile.shoulderTiltAngle}° • ΔS: {bodyProfile.spineDeviationPx}px
+                </div>
+              </div>
+            )}
 
             {/* Metrics Breakdown Grid */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
