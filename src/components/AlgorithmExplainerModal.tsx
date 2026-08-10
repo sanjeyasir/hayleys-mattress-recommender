@@ -102,18 +102,18 @@ export const AlgorithmExplainerModal: React.FC<AlgorithmExplainerModalProps> = (
           </div>
 
           {/* Step Selector Tab Navigation */}
-          <div className="bg-slate-100/90 border-b border-slate-200 px-6 py-2 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+          <div className="bg-slate-100/90 border-b border-slate-200 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-2 overflow-x-auto">
+            <div className="flex items-center gap-2 flex-nowrap shrink-0">
               {[
-                { id: 1, title: '1. Anatomical Spine Mapping', icon: <Eye className="w-3.5 h-3.5" /> },
-                { id: 2, title: '2. Natural Human Asymmetry', icon: <Activity className="w-3.5 h-3.5" /> },
-                { id: 3, title: '3. Multi-Factor Formula & Couples', icon: <Calculator className="w-3.5 h-3.5" /> },
+                { id: 1, title: '1. Spine Mapping', icon: <Eye className="w-3.5 h-3.5" /> },
+                { id: 2, title: '2. Bilateral Asymmetry', icon: <Activity className="w-3.5 h-3.5" /> },
+                { id: 3, title: '3. Multi-Factor Formula', icon: <Calculator className="w-3.5 h-3.5" /> },
                 { id: 4, title: '4. Live Math Sandbox', icon: <Sliders className="w-3.5 h-3.5 text-gold-600" /> }
               ].map((step) => (
                 <button
                   key={step.id}
                   onClick={() => setActiveStep(step.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                     activeStep === step.id
                       ? 'bg-brand-950 text-white shadow-sm'
                       : 'text-slate-600 hover:bg-slate-200/70'
@@ -125,7 +125,7 @@ export const AlgorithmExplainerModal: React.FC<AlgorithmExplainerModalProps> = (
               ))}
             </div>
 
-            <div className="text-[11px] text-slate-500 font-mono hidden md:block">
+            <div className="text-[11px] text-slate-500 font-mono hidden lg:block shrink-0">
               Zero Hallucination • 100% Explainable Biomechanical Math
             </div>
           </div>

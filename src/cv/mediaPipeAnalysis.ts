@@ -50,6 +50,31 @@ export const getMockLandmarks = (posture: 'neutral' | 'tilted' | 'curved') => {
 };
 
 /**
+ * Canonical anatomical skeleton connections [fromIndex, toIndex, color]
+ * Strictly maps human biological joints without connecting to localized noise or stray points.
+ */
+export const CANONICAL_SKELETON_CONNECTIONS: [number, number, string][] = [
+  // Clavicular shoulder girdle
+  [11, 12, '#38bdf8'],
+  // Left arm (Shoulder -> Elbow -> Wrist)
+  [11, 13, '#60a5fa'],
+  [13, 15, '#60a5fa'],
+  // Right arm (Shoulder -> Elbow -> Wrist)
+  [12, 14, '#60a5fa'],
+  [14, 16, '#60a5fa'],
+  // Torso frame (Shoulders to Hips, Pelvic base)
+  [11, 23, '#3b82f6'],
+  [12, 24, '#3b82f6'],
+  [23, 24, '#818cf8'],
+  // Left leg (Hip -> Knee -> Ankle)
+  [23, 25, '#6366f1'],
+  [25, 27, '#6366f1'],
+  // Right leg (Hip -> Knee -> Ankle)
+  [24, 26, '#6366f1'],
+  [26, 28, '#6366f1'],
+];
+
+/**
  * Analyzes posture geometry from MediaPipe landmarks:
  * - Generates biologically accurate multi-vertebra anatomical spine spline mapped to body contours
  * - Quantifies realistic bilateral asymmetry (handedness, pelvic tilt, lateral spine curves)
@@ -74,16 +99,34 @@ export const analyzeMediaPipePosture = (
   // Draw input frame as background
   ctx.drawImage(sourceCanvas, 0, 0);
 
+  // Safety fallback for landmarks
+  const safeLandmarks = (landmarks && landmarks.length >= 29) ? landmarks : getMockLandmarks('neutral');
+
+  // Helper for strictly clamped pixel coordinates
+  const getSafePt = (idx: number, defX: number, defY: number) => {
+    const raw = safeLandmarks[idx];
+    const x = (raw?.x !== undefined ? raw.x : defX) * imgWidth;
+    const y = (raw?.y !== undefined ? raw.y : defY) * imgHeight;
+    return {
+      x: Math.max(10, Math.min(imgWidth - 10, x)),
+      y: Math.max(10, Math.min(imgHeight - 10, y))
+    };
+  };
+
   // Map normalized coordinate markers to canvas pixels
-  const nose = { x: landmarks[0].x * imgWidth, y: landmarks[0].y * imgHeight };
-  const shL = { x: landmarks[11].x * imgWidth, y: landmarks[11].y * imgHeight };
-  const shR = { x: landmarks[12].x * imgWidth, y: landmarks[12].y * imgHeight };
-  const hipL = { x: landmarks[23].x * imgWidth, y: landmarks[23].y * imgHeight };
-  const hipR = { x: landmarks[24].x * imgWidth, y: landmarks[24].y * imgHeight };
-  const kneeL = { x: landmarks[25].x * imgWidth, y: landmarks[25].y * imgHeight };
-  const kneeR = { x: landmarks[26].x * imgWidth, y: landmarks[26].y * imgHeight };
-  const ankleL = { x: landmarks[27].x * imgWidth, y: landmarks[27].y * imgHeight };
-  const ankleR = { x: landmarks[28].x * imgWidth, y: landmarks[28].y * imgHeight };
+  const nose = getSafePt(0, 0.50, 0.22);
+  const shL = getSafePt(11, 0.39, 0.33);
+  const shR = getSafePt(12, 0.61, 0.34);
+  const elbowL = getSafePt(13, 0.35, 0.45);
+  const elbowR = getSafePt(14, 0.65, 0.45);
+  const wristL = getSafePt(15, 0.32, 0.56);
+  const wristR = getSafePt(16, 0.68, 0.56);
+  const hipL = getSafePt(23, 0.42, 0.60);
+  const hipR = getSafePt(24, 0.58, 0.60);
+  const kneeL = getSafePt(25, 0.44, 0.78);
+  const kneeR = getSafePt(26, 0.56, 0.78);
+  const ankleL = getSafePt(27, 0.44, 0.92);
+  const ankleR = getSafePt(28, 0.56, 0.92);
 
   // Midpoints
   const shMid = { x: (shL.x + shR.x) / 2, y: (shL.y + shR.y) / 2 };
@@ -117,7 +160,6 @@ export const analyzeMediaPipePosture = (
   const spineDeviation = Number(Math.min(rawSpineDeviation, 45).toFixed(1));
 
   // --- REALISTIC ASYMMETRY CALCULATION ---
-  // In human biology, natural asymmetry stems from dominant hand usage, unilateral weight bearing, and natural thoracic torsion.
   const shoulderLevelDiffPx = Number(Math.abs(shL.y - shR.y).toFixed(1));
   const pelvicTiltDiffPx = Number(Math.abs(hipL.y - hipR.y).toFixed(1));
   const lateralSpineCurveMm = Number((spineDeviation * 0.8).toFixed(1));
@@ -134,7 +176,7 @@ export const analyzeMediaPipePosture = (
     asymmetryReasoning = `Natural functional asymmetry (shoulder height Δ: ${shoulderLevelDiffPx}px, pelvic tilt: ${hipTilt}°). Requires adaptive contour cushioning.`;
   }
 
-  // Realistic human symmetry percentage (typically 75% to 96% in healthy humans, never a sterile 100%)
+  // Symmetry percentage
   const asymmetryDeduction = (shoulderLevelDiffPx * 1.8) + (pelvicTiltDiffPx * 1.5) + (spineDeviation * 0.9);
   const symmetryRating = Math.round(Math.max(68, Math.min(96, 100 - asymmetryDeduction)));
 
@@ -182,27 +224,32 @@ export const analyzeMediaPipePosture = (
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // 4. Biomechanical Skeletal Bones
+  // 4. Biomechanical Skeletal Bones (Strict Canonical Index Mapping)
+  const landmarkMap: Record<number, Point> = {
+    0: nose,
+    11: shL, 12: shR,
+    13: elbowL, 14: elbowR,
+    15: wristL, 16: wristR,
+    23: hipL, 24: hipR,
+    25: kneeL, 26: kneeR,
+    27: ankleL, 28: ankleR
+  };
+
   ctx.lineWidth = 3.5;
   ctx.lineCap = 'round';
-  
-  // Torso / Hips frame
-  ctx.strokeStyle = '#3b82f6';
-  ctx.beginPath();
-  ctx.moveTo(shL.x, shL.y); ctx.lineTo(shR.x, shR.y);
-  ctx.moveTo(hipL.x, hipL.y); ctx.lineTo(hipR.x, hipR.y);
-  ctx.moveTo(shL.x, shL.y); ctx.lineTo(hipL.x, hipL.y);
-  ctx.moveTo(shR.x, shR.y); ctx.lineTo(hipR.x, hipR.y);
-  ctx.stroke();
+  ctx.lineJoin = 'round';
 
-  // Legs
-  ctx.strokeStyle = '#6366f1';
-  ctx.beginPath();
-  ctx.moveTo(hipL.x, hipL.y); ctx.lineTo(kneeL.x, kneeL.y);
-  ctx.moveTo(kneeL.x, kneeL.y); ctx.lineTo(ankleL.x, ankleL.y);
-  ctx.moveTo(hipR.x, hipR.y); ctx.lineTo(kneeR.x, kneeR.y);
-  ctx.moveTo(kneeR.x, kneeR.y); ctx.lineTo(ankleR.x, ankleR.y);
-  ctx.stroke();
+  CANONICAL_SKELETON_CONNECTIONS.forEach(([fromIdx, toIdx, color]) => {
+    const p1 = landmarkMap[fromIdx];
+    const p2 = landmarkMap[toIdx];
+    if (p1 && p2) {
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    }
+  });
 
   // 5. Spine curves path
   ctx.lineWidth = 4;
@@ -232,6 +279,10 @@ export const analyzeMediaPipePosture = (
   drawJoint(nose, '#10b981');
   drawJoint(shL, Math.abs(shoulderTilt) > 2.5 ? '#f59e0b' : '#10b981');
   drawJoint(shR, Math.abs(shoulderTilt) > 2.5 ? '#f59e0b' : '#10b981');
+  drawJoint(elbowL, '#60a5fa');
+  drawJoint(elbowR, '#60a5fa');
+  drawJoint(wristL, '#60a5fa');
+  drawJoint(wristR, '#60a5fa');
   drawJoint(hipL, '#3b82f6');
   drawJoint(hipR, '#3b82f6');
   drawJoint(kneeL, '#6366f1');

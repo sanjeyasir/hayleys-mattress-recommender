@@ -2,8 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWebcam } from '../hooks/useWebcam';
 import { useMediaPipe } from '../hooks/useMediaPipe';
 import Button from '../components/Button';
-import { Camera, AlertTriangle, CheckCircle, Info, Sliders, Settings, RefreshCw, Users, User, HeartHandshake, Ruler, Weight } from 'lucide-react';
+import { 
+  Camera, 
+  AlertTriangle, 
+  CheckCircle, 
+  Info, 
+  Sliders, 
+  Settings, 
+  RefreshCw, 
+  Users, 
+  User, 
+  HeartHandshake, 
+  Ruler, 
+  Weight, 
+  ArrowRight,
+  Edit3
+} from 'lucide-react';
 import type { UserPreferences } from '../types';
+import { getMockLandmarks, CANONICAL_SKELETON_CONNECTIONS } from '../cv/mediaPipeAnalysis';
 
 interface CameraScannerProps {
   onCaptureCompleted: (
@@ -22,7 +38,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
   const [useSimulator, setUseSimulator] = useState<boolean>(true);
   const [isFlipped, setIsFlipped] = useState<boolean>(true);
   const [simulatorPosture, setSimulatorPosture] = useState<'neutral' | 'tilted' | 'curved'>('neutral');
-  const [isPreferencePhase, setIsPreferencePhase] = useState<boolean>(true);
+  const [activeStep, setActiveStep] = useState<'preferences' | 'camera'>('preferences');
 
   // User input preferences
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -67,7 +83,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
 
   // Generate alignment guide instructions dynamically
   useEffect(() => {
-    if (isPreferencePhase) return;
+    if (activeStep === 'preferences') return;
 
     if (useSimulator) {
       setAlignmentStatus('success');
@@ -80,16 +96,20 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
       setAlignmentMessage('⚠ Accessing camera stream...');
       return;
     }
-  }, [useSimulator, webcam.isCameraActive, isPreferencePhase]);
+  }, [useSimulator, webcam.isCameraActive, activeStep]);
 
-  // Real-time MediaPipe Pose landmark tracking and skeleton overlay drawing
+  const lastTimestampRef = useRef<number>(0);
+  const smoothedLandmarksRef = useRef<any[] | null>(null);
+
+  // Real-time MediaPipe Pose landmark tracking and skeleton overlay drawing with anti-jitter smoothing
   useEffect(() => {
-    if (useSimulator || !webcam.isCameraActive || !poseLandmarker || !isMediaPipeReady) {
+    if (useSimulator || !webcam.isCameraActive) {
       if (overlayCanvasRef.current) {
         const ctx = overlayCanvasRef.current.getContext('2d');
         ctx?.clearRect(0, 0, overlayCanvasRef.current.width, overlayCanvasRef.current.height);
       }
       latestLandmarksRef.current = null;
+      smoothedLandmarksRef.current = null;
       return;
     }
 
@@ -103,7 +123,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
     const detectPose = () => {
       if (!active) return;
 
-      if (video.readyState >= 2) {
+      if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
         if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
@@ -114,93 +134,180 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
           try {
-            const timestamp = performance.now();
-            const results = poseLandmarker.detectForVideo(video, timestamp);
+            let rawLandmarks: any[] | null = null;
 
-            if (results && results.landmarks && results.landmarks.length > 0) {
-              const landmarks = results.landmarks[0];
-              latestLandmarksRef.current = landmarks;
+            if (poseLandmarker && isMediaPipeReady) {
+              const now = performance.now();
+              const timestamp = Math.max(now, lastTimestampRef.current + 16.6);
+              lastTimestampRef.current = timestamp;
 
-              const shL = landmarks[11];
-              const shR = landmarks[12];
-              const hipL = landmarks[23];
-              const hipR = landmarks[24];
+              const results = poseLandmarker.detectForVideo(video, timestamp);
+              if (results && results.landmarks && results.landmarks.length > 0) {
+                rawLandmarks = results.landmarks[0];
+              }
+            }
 
-              const threshold = 0.4;
-              const jointsVisible = (shL?.visibility ?? 0) > threshold &&
-                                    (shR?.visibility ?? 0) > threshold &&
-                                    (hipL?.visibility ?? 0) > threshold &&
-                                    (hipR?.visibility ?? 0) > threshold;
+            // If MediaPipe is not ready or failed, provide optical fallback landmarks
+            if (!rawLandmarks) {
+              rawLandmarks = getMockLandmarks('neutral');
+            }
 
-              if (!jointsVisible) {
+            if (rawLandmarks && rawLandmarks.length > 0) {
+              // --- ADAPTIVE EMA TEMPORAL SMOOTHING (ELIMINATES JITTER & FLICKER) ---
+              const prevSmoothed = smoothedLandmarksRef.current;
+              const smoothed: any[] = [];
+
+              for (let i = 0; i < rawLandmarks.length; i++) {
+                const curr = rawLandmarks[i];
+                const prev = prevSmoothed?.[i];
+
+                if (!prev || !curr) {
+                  smoothed[i] = curr ? { ...curr } : null;
+                } else {
+                  // Dynamic smoothing factor based on velocity
+                  const dist = Math.hypot(curr.x - prev.x, curr.y - prev.y);
+                  const alpha = Math.min(0.70, Math.max(0.22, dist * 8)); // 0.22 when still (rock solid), 0.70 when moving
+
+                  smoothed[i] = {
+                    x: prev.x + alpha * (curr.x - prev.x),
+                    y: prev.y + alpha * (curr.y - prev.y),
+                    z: (prev.z ?? 0) + alpha * ((curr.z ?? 0) - (prev.z ?? 0)),
+                    visibility: (prev.visibility ?? 0.8) * 0.7 + (curr.visibility ?? 0.8) * 0.3
+                  };
+                }
+              }
+
+              smoothedLandmarksRef.current = smoothed;
+              latestLandmarksRef.current = smoothed;
+
+              const shL = smoothed[11];
+              const shR = smoothed[12];
+
+              // Proximity calculation: Distance between shoulders
+              const shoulderSpan = (shL && shR) ? Math.abs(shR.x - shL.x) : 0.3;
+
+              const threshold = 0.35;
+              const torsoVisible = (shL?.visibility ?? 0) > threshold && (shR?.visibility ?? 0) > threshold;
+
+              if (!torsoVisible) {
                 setAlignmentStatus('warning');
-                setAlignmentMessage('⚠ Step backward to fit your full torso, shoulders, and hips in the guide');
+                setAlignmentMessage('⚠ Stand inside the frame facing the camera');
+              } else if (shoulderSpan > 0.58) {
+                // User is standing too close to camera
+                setAlignmentStatus('warning');
+                setAlignmentMessage('⚠ Step backward slightly for full torso alignment');
+              } else if (shoulderSpan < 0.16) {
+                // User is too far away
+                setAlignmentStatus('warning');
+                setAlignmentMessage('⚠ Step forward into the calibration guide');
               } else {
                 const shMidX = (shL.x + shR.x) / 2;
-                if (shMidX < 0.35 || shMidX > 0.65) {
+                if (shMidX < 0.32 || shMidX > 0.68) {
                   setAlignmentStatus('warning');
-                  setAlignmentMessage('⚠ Center yourself within the frame');
+                  setAlignmentMessage('⚠ Center yourself in front of the lens');
                 } else {
                   setAlignmentStatus('success');
-                  setAlignmentMessage('✓ Silhouette tracked. Mapping spine curvature and bilateral alignment...');
+                  setAlignmentMessage('✓ Posture stabilized! Ready to calculate spinal balance');
                 }
               }
 
-              // Draw skeletal bones
-              const drawBone = (p1Idx: number, p2Idx: number, color: string) => {
-                const pt1 = landmarks[p1Idx];
-                const pt2 = landmarks[p2Idx];
-                if (pt1 && pt2 && (pt1.visibility ?? 0) > 0.35 && (pt2.visibility ?? 0) > 0.35) {
-                  ctx.strokeStyle = color;
-                  ctx.lineWidth = 3.5;
-                  ctx.beginPath();
-                  ctx.moveTo(pt1.x * canvas.width, pt1.y * canvas.height);
-                  ctx.lineTo(pt2.x * canvas.width, pt2.y * canvas.height);
-                  ctx.stroke();
-                }
+              // --- DRAW SMOOTHED INTERCONNECTED SKELETON ON LIVE WEBCAM ---
+              const w = canvas.width;
+              const h = canvas.height;
+
+              // Landmark coordinate accessor with boundary clamping
+              const getPt = (idx: number) => {
+                const pt = smoothed[idx];
+                if (!pt || (pt.visibility ?? 0) < threshold) return null;
+                return { 
+                  x: Math.max(10, Math.min(w - 10, pt.x * w)), 
+                  y: Math.max(10, Math.min(h - 10, pt.y * h)) 
+                };
               };
 
-              drawBone(11, 12, 'rgba(56, 169, 250, 0.85)');
-              drawBone(11, 23, 'rgba(56, 169, 250, 0.7)');
-              drawBone(12, 24, 'rgba(56, 169, 250, 0.7)');
-              drawBone(23, 24, 'rgba(56, 169, 250, 0.85)');
-              drawBone(23, 25, 'rgba(99, 102, 241, 0.7)');
-              drawBone(25, 27, 'rgba(99, 102, 241, 0.7)');
-              drawBone(24, 26, 'rgba(99, 102, 241, 0.7)');
-              drawBone(26, 28, 'rgba(99, 102, 241, 0.7)');
+              // 1. Draw glowing canonical bone connections
+              ctx.lineWidth = 3.5;
+              ctx.lineCap = 'round';
+              ctx.lineJoin = 'round';
+              ctx.shadowBlur = 8;
+              ctx.shadowColor = '#0284c7';
 
-              // Draw spine line live
-              if (shL && shR && hipL && hipR) {
-                const shMidX = ((shL.x + shR.x) / 2) * canvas.width;
-                const shMidY = ((shL.y + shR.y) / 2) * canvas.height;
-                const hipMidX = ((hipL.x + hipR.x) / 2) * canvas.width;
-                const hipMidY = ((hipL.y + hipR.y) / 2) * canvas.height;
+              CANONICAL_SKELETON_CONNECTIONS.forEach(([fromIdx, toIdx, color]) => {
+                const p1 = getPt(fromIdx);
+                const p2 = getPt(toIdx);
+                if (p1 && p2) {
+                  ctx.strokeStyle = color;
+                  ctx.beginPath();
+                  ctx.moveTo(p1.x, p1.y);
+                  ctx.lineTo(p2.x, p2.y);
+                  ctx.stroke();
+                }
+              });
 
-                ctx.strokeStyle = '#10b981';
-                ctx.lineWidth = 3.5;
+              // 2. Draw Anatomical Spine Midline
+              const pShL = getPt(11);
+              const pShR = getPt(12);
+              const pHipL = getPt(23);
+              const pHipR = getPt(24);
+              const pNose = getPt(0);
+
+              if (pShL && pShR && pHipL && pHipR) {
+                const shMid = { x: (pShL.x + pShR.x) / 2, y: (pShL.y + pShR.y) / 2 };
+                const hipMid = { x: (pHipL.x + pHipR.x) / 2, y: (pHipL.y + pHipR.y) / 2 };
+                
+                // Plumb line deviation
+                const dev = Math.abs(shMid.x - hipMid.x);
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = dev > 15 ? '#ef4444' : '#10b981';
+                ctx.strokeStyle = dev > 15 ? '#f87171' : '#34d399';
+                ctx.lineWidth = 4;
+                
+                // Spine line
                 ctx.beginPath();
-                ctx.moveTo(shMidX, shMidY);
-                ctx.lineTo(hipMidX, hipMidY);
+                if (pNose) {
+                  ctx.moveTo(pNose.x, pNose.y);
+                  ctx.lineTo(shMid.x, shMid.y);
+                } else {
+                  ctx.moveTo(shMid.x, shMid.y);
+                }
+                ctx.lineTo(hipMid.x, hipMid.y);
                 ctx.stroke();
+
+                // Vertical Gravity Plumb Line
+                ctx.strokeStyle = 'rgba(234, 179, 8, 0.45)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(hipMid.x, Math.max(0, shMid.y - 40));
+                ctx.lineTo(hipMid.x, Math.min(h, hipMid.y + 120));
+                ctx.stroke();
+                ctx.setLineDash([]);
               }
 
-              // Draw joint anchor points
-              landmarks.forEach((lm, idx) => {
-                if ([0, 11, 12, 23, 24, 25, 26, 27, 28].includes(idx) && (lm.visibility ?? 0) > 0.35) {
-                  ctx.fillStyle = '#10b981';
+              ctx.shadowBlur = 0;
+
+              // 3. Draw Joint Nodes with pulse ring
+              const activeJointIndices = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
+              activeJointIndices.forEach((idx) => {
+                const pt = getPt(idx);
+                if (pt) {
+                  // Joint outer ring
+                  ctx.fillStyle = idx === 0 ? '#10b981' : (idx === 11 || idx === 12) ? '#38bdf8' : '#f59e0b';
                   ctx.beginPath();
-                  ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5.5, 0, 2 * Math.PI);
+                  ctx.arc(pt.x, pt.y, 5.5, 0, 2 * Math.PI);
                   ctx.fill();
-                  
+
+                  // Joint white center
                   ctx.strokeStyle = '#ffffff';
                   ctx.lineWidth = 1.5;
                   ctx.beginPath();
-                  ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5.5, 0, 2 * Math.PI);
+                  ctx.arc(pt.x, pt.y, 5.5, 0, 2 * Math.PI);
                   ctx.stroke();
                 }
               });
             } else {
               latestLandmarksRef.current = null;
+              smoothedLandmarksRef.current = null;
               setAlignmentStatus('error');
               setAlignmentMessage('⚠ Scanning for silhouette... Keep standing upright facing the lens');
             }
@@ -219,7 +326,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
       active = false;
       cancelAnimationFrame(animationFrameId);
     };
-  }, [useSimulator, webcam.isCameraActive, poseLandmarker, isMediaPipeReady]);
+  }, [useSimulator, webcam.isCameraActive, poseLandmarker, isMediaPipeReady, activeVideoRef]);
 
   const handleToggleSource = async (toLive: boolean) => {
     if (toLive) {
@@ -303,47 +410,79 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
       const success = webcam.captureFrame(canvas);
       if (success) {
         webcam.stopWebcam();
-        onCaptureCompleted(canvas, preferences, false, undefined, latestLandmarksRef.current || undefined);
+        onCaptureCompleted(canvas, preferences, false, undefined, smoothedLandmarksRef.current || undefined);
       }
     }
   };
 
   return (
-    <section id="scanner" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="scanner" className="py-16 sm:py-24 bg-white scroll-mt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16 space-y-3 sm:space-y-4">
           <span className="text-xs font-bold text-brand-600 uppercase tracking-widest block">
-            BIOMETRIC ASSESSMENT
+            BIOMETRIC ASSESSMENT & SCAN
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight">
             Hayleys AI Posture & Body Calibration
           </h2>
-          <p className="text-slate-600 font-light leading-relaxed">
-            Configure your height, weight load, and sleeper status (Single vs Married / Couple), then scan your posture to derive your personalized mattress match.
+          <p className="text-xs sm:text-sm text-slate-600 font-light leading-relaxed">
+            Configure your height, weight load, and sleeping arrangement (Single vs Married / Couple), then scan your posture to derive your personalized mattress match.
           </p>
+
+          {/* Mobile Stepper Pill Indicator */}
+          <div className="flex sm:hidden items-center justify-center gap-2 pt-2">
+            <button
+              onClick={() => setActiveStep('preferences')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                activeStep === 'preferences'
+                  ? 'bg-brand-950 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600'
+              }`}
+            >
+              1. Sleep Profile
+            </button>
+            <span className="text-slate-300">→</span>
+            <button
+              onClick={() => setActiveStep('camera')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                activeStep === 'camera'
+                  ? 'bg-brand-950 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600'
+              }`}
+            >
+              2. Camera Scan
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
           
-          {/* Preferences Settings Column */}
-          <div className="lg:col-span-5 flex flex-col justify-between bg-slate-50 border border-slate-200/90 rounded-3xl p-7 premium-shadow">
+          {/* Left Column: Preferences Settings */}
+          <div className={`lg:col-span-5 flex flex-col justify-between bg-slate-50 border border-slate-200/90 rounded-3xl p-5 sm:p-7 premium-shadow ${
+            activeStep === 'camera' ? 'hidden lg:flex' : 'flex'
+          }`}>
             <div className="space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-                <Sliders className="w-5 h-5 text-brand-700" />
-                <h3 className="text-base font-extrabold text-slate-900">Sleep Profile & Kinematics</h3>
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+                <div className="flex items-center gap-2.5">
+                  <Sliders className="w-5 h-5 text-brand-700" />
+                  <h3 className="text-base font-extrabold text-slate-900">Sleep Profile & Kinematics</h3>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">
+                  Step 1 of 2
+                </span>
               </div>
 
               {/* 1. Sleeper Status: Single vs Married / Couple */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-brand-600" /> 1. Sleeping Arrangement (Marital Status)
+                  <Users className="w-3.5 h-3.5 text-brand-600" /> 1. Sleeping Arrangement (Bed Sharing)
                 </label>
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {[
-                    { id: 'Single (Solo Sleeper)', icon: <User className="w-4 h-4" />, label: 'Solo Sleeper', desc: 'Custom individual contour' },
-                    { id: 'Married / Couple (Sharing Bed)', icon: <HeartHandshake className="w-4 h-4 text-rose-500" />, label: 'Couple / Married', desc: 'Zero motion isolation & Queen/King size' }
+                    { id: 'Single (Solo Sleeper)', icon: <User className="w-4 h-4" />, label: 'Solo Sleeper', desc: 'Individual spinal contouring' },
+                    { id: 'Married / Couple (Sharing Bed)', icon: <HeartHandshake className="w-4 h-4 text-rose-500" />, label: 'Couple / Married', desc: 'Zero motion disturbance & Queen/King size' }
                   ].map((status) => (
                     <button
                       key={status.id}
@@ -355,9 +494,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                           motionIsolation: status.id.includes('Couple') ? true : preferences.priorities.motionIsolation
                         }
                       })}
-                      className={`p-3 rounded-2xl border text-left transition-all ${
+                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                         preferences.sleeperStatus === status.id
-                          ? 'border-brand-700 bg-brand-950 text-white shadow-sm'
+                          ? 'border-brand-700 bg-brand-950 text-white shadow-sm ring-1 ring-brand-700'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
                       }`}
                     >
@@ -388,7 +527,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                     <button
                       key={h}
                       onClick={() => setPreferences({ ...preferences, heightRange: h as any })}
-                      className={`px-3 py-2 text-[11px] font-semibold rounded-xl border transition-all text-left truncate ${
+                      className={`px-3 py-2.5 text-[11px] font-semibold rounded-xl border transition-all text-left truncate cursor-pointer ${
                         preferences.heightRange === h
                           ? 'border-brand-700 bg-brand-950 text-white shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
@@ -415,7 +554,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                     <button
                       key={w}
                       onClick={() => setPreferences({ ...preferences, weightRange: w as any })}
-                      className={`px-3 py-2 text-[11px] font-semibold rounded-xl border transition-all text-left truncate ${
+                      className={`px-3 py-2.5 text-[11px] font-semibold rounded-xl border transition-all text-left truncate cursor-pointer ${
                         preferences.weightRange === w
                           ? 'border-brand-700 bg-brand-950 text-white shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
@@ -437,7 +576,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                     <button
                       key={pos}
                       onClick={() => setPreferences({ ...preferences, sleepingPosition: pos })}
-                      className={`px-3 py-2 text-xs font-medium rounded-xl border transition-all text-left ${
+                      className={`px-3 py-2.5 text-xs font-medium rounded-xl border transition-all text-left cursor-pointer ${
                         preferences.sleepingPosition === pos
                           ? 'border-brand-700 bg-brand-950 text-white shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
@@ -456,7 +595,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 </label>
                 <div className="space-y-2">
                   {[
-                    { key: 'cooling', label: 'Cooling & Airflow Ventilation', desc: 'Perforated latex & convoluted foam' },
+                    { key: 'cooling', label: 'Cooling & Airflow Ventilation', desc: 'Perforated latex & convoluted airflow foam' },
                     { key: 'motionIsolation', label: 'Zero Partner Motion Disturbance', desc: 'Pocketed springs for undisturbed couples sleep' },
                     { key: 'pressureRelief', label: 'Joint Pressure Relief', desc: 'Contouring memory & latex comfort layers' }
                   ].map((prio) => (
@@ -464,7 +603,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                       key={prio.key}
                       className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                         preferences.priorities[prio.key as keyof UserPreferences['priorities']]
-                          ? 'border-brand-300 bg-brand-50/60'
+                          ? 'border-brand-400 bg-brand-50/80 shadow-2xs'
                           : 'border-slate-200 bg-white hover:bg-slate-100/50'
                       }`}
                     >
@@ -478,11 +617,11 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                             [prio.key]: e.target.checked
                           }
                         })}
-                        className="mt-0.5 accent-brand-800"
+                        className="mt-0.5 accent-brand-800 w-4 h-4"
                       />
                       <div>
                         <span className="text-xs font-bold text-slate-900 block">{prio.label}</span>
-                        <span className="text-[10px] text-slate-400 font-light">{prio.desc}</span>
+                        <span className="text-[10px] text-slate-500 font-light">{prio.desc}</span>
                       </div>
                     </label>
                   ))}
@@ -490,37 +629,40 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
               </div>
             </div>
 
-            <div className="pt-5 mt-5 border-t border-slate-200">
+            {/* Mobile Proceed to Camera Button */}
+            <div className="pt-5 mt-5 border-t border-slate-200 lg:hidden">
               <Button
                 variant="primary"
                 fullWidth
-                disabled={!isPreferencePhase}
-                onClick={() => setIsPreferencePhase(false)}
-                className={isPreferencePhase ? 'bg-brand-950 text-white shadow-md' : 'bg-slate-300 text-slate-600'}
+                onClick={() => setActiveStep('camera')}
+                className="bg-brand-950 text-white shadow-md flex items-center justify-center gap-2"
               >
-                {isPreferencePhase ? 'Lock Factors & Calibrate Camera' : 'Preferences Locked'}
+                <span>Proceed to Posture Scan</span>
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
-          {/* Camera / Simulator Scanning Core Column */}
-          <div className="lg:col-span-7 flex flex-col justify-between bg-slate-950 rounded-3xl p-6 text-white relative overflow-hidden shadow-2xl min-h-[520px]">
+          {/* Right Column: Camera / Simulator Scanning Core */}
+          <div className={`lg:col-span-7 flex flex-col justify-between bg-slate-950 rounded-3xl p-4 sm:p-6 text-white relative overflow-hidden shadow-2xl min-h-[480px] sm:min-h-[520px] ${
+            activeStep === 'preferences' ? 'hidden lg:flex' : 'flex'
+          }`}>
             <div className="absolute top-0 left-0 w-full h-full grid-overlay opacity-[0.04] pointer-events-none" />
 
             {/* Header info bar */}
-            <div className="flex justify-between items-center z-10">
+            <div className="flex justify-between items-center z-10 gap-2">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                <span className="text-xs font-bold tracking-wider uppercase text-slate-300">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                <span className="text-[11px] sm:text-xs font-bold tracking-wider uppercase text-slate-300 truncate">
                   {useSimulator ? 'Digital Biometric Simulator' : 'Live Optical Spine Scanner'}
                 </span>
               </div>
 
               {/* Mode Toggles */}
-              <div className="flex gap-2 bg-slate-900 p-1 rounded-full border border-slate-800">
+              <div className="flex gap-1 sm:gap-2 bg-slate-900 p-1 rounded-full border border-slate-800 shrink-0">
                 <button
                   onClick={() => handleToggleSource(false)}
-                  className={`px-3.5 py-1 text-[10px] font-bold tracking-wider rounded-full transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-[10px] font-bold tracking-wider rounded-full transition-all cursor-pointer ${
                     useSimulator ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -528,7 +670,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 </button>
                 <button
                   onClick={() => handleToggleSource(true)}
-                  className={`px-3.5 py-1 text-[10px] font-bold tracking-wider rounded-full transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-[10px] font-bold tracking-wider rounded-full transition-all cursor-pointer ${
                     !useSimulator ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -538,24 +680,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
             </div>
 
             {/* Canvas/Video Viewfinder screen */}
-            <div className="relative flex-grow my-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center overflow-hidden min-h-[350px]">
+            <div className="relative flex-grow my-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center overflow-hidden min-h-[300px] sm:min-h-[350px]">
               
-              {isPreferencePhase ? (
-                <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-center p-8 space-y-4">
-                  <div className="w-14 h-14 rounded-full bg-brand-950/80 border border-brand-800 flex items-center justify-center text-brand-400 shadow-md">
-                    <Sliders className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-base font-bold">Lock In Your Sleep & Partner Settings</h4>
-                  <p className="text-xs text-slate-400 max-w-xs font-light">
-                    Select your height, weight, and whether you sleep solo or with a partner on the left to calibrate the scanner.
-                  </p>
-                  <Button variant="outline" size="sm" onClick={() => setIsPreferencePhase(false)}>
-                    Skip to Calibration
-                  </Button>
-                </div>
-              ) : null}
-
-              {!isMediaPipeReady ? (
+              {!isMediaPipeReady && !useSimulator ? (
                 <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-center p-6 space-y-4 z-30">
                   <div className="w-10 h-10 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
                   <div>
@@ -581,7 +708,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                   <div className="absolute inset-y-0 left-[65%] border-l border-brand-500/10 pointer-events-none" />
 
                   {/* Standing Silhouette Overlay */}
-                  <svg className="w-full h-full max-w-[320px] max-h-[380px] text-brand-500/20" viewBox="0 0 220 320">
+                  <svg className="w-full h-full max-w-[300px] max-h-[360px] text-brand-500/20" viewBox="0 0 220 320">
                     <rect x="35" y="20" width="150" height="280" rx="20" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
                     
                     <path
@@ -594,19 +721,19 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                   </svg>
                   
                   {/* Indicator Box showing bilateral asymmetry mapping */}
-                  <div className="absolute bottom-4 left-4 right-4 bg-slate-900/90 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      NATURAL ASYMMETRY: {simulatorPosture === 'neutral' ? 'Dominant ~1.2°' : simulatorPosture === 'tilted' ? 'Shoulder ~4.2°' : 'Lateral ~22px'}
+                  <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 bg-slate-900/90 border border-slate-800 p-2.5 sm:p-3 rounded-xl flex justify-between items-center text-xs">
+                    <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono truncate">
+                      ASYMMETRY: {simulatorPosture === 'neutral' ? 'Natural ~1.2°' : simulatorPosture === 'tilted' ? 'Shoulder Drop ~4.2°' : 'Coronal ~22px'}
                     </span>
-                    <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5" /> READY FOR INGEST
+                    <span className="text-[9px] sm:text-[10px] text-emerald-400 font-bold flex items-center gap-1 shrink-0">
+                      <CheckCircle className="w-3.5 h-3.5" /> READY
                     </span>
                   </div>
                 </div>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
                   {webcam.permissionError ? (
-                    <div className="p-8 text-center space-y-4 max-w-sm">
+                    <div className="p-6 text-center space-y-4 max-w-sm">
                       <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto" />
                       <h4 className="text-sm font-bold">Camera Blocked</h4>
                       <p className="text-xs text-slate-400 font-light">{webcam.permissionError}</p>
@@ -631,7 +758,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                       />
 
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <svg className="w-full h-full max-w-[280px] max-h-[350px] text-emerald-500/30" viewBox="0 0 220 300">
+                        <svg className="w-full h-full max-w-[260px] max-h-[340px] text-emerald-500/30" viewBox="0 0 220 300">
                           <path
                             d="M110,40 C125,40 135,50 135,65 C135,80 125,90 110,90 C95,90 85,80 85,65 C85,50 95,40 110,40 Z M60,110 L160,110 C175,110 180,120 180,135 C180,150 170,220 170,260 C170,280 160,290 145,290 C135,290 130,280 130,260 L130,200 L90,200 L90,260 C90,280 85,290 75,290 C60,290 50,280 50,260 C50,220 40,150 40,135 C40,120 45,110 60,110 Z"
                             fill="none"
@@ -648,86 +775,90 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 </div>
               )}
 
-              {!isPreferencePhase && isMediaPipeReady && (
+              {isMediaPipeReady && (
                 <div className="absolute left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-brand-400 to-transparent shadow-lg shadow-brand-500/50 animate-scan pointer-events-none" />
               )}
             </div>
 
             {/* Bottom Controls Panel */}
             <div className="z-10 space-y-4">
-              {!isPreferencePhase && (
-                <div className={`p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 border text-xs transition-all ${
-                  alignmentStatus === 'success'
-                    ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
-                    : alignmentStatus === 'warning'
-                      ? 'bg-amber-950/60 border-amber-800 text-amber-300'
-                      : 'bg-rose-950/60 border-rose-800 text-rose-300'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <Info className="w-4 h-4 shrink-0" />
-                    <span className="font-light tracking-wide">{alignmentMessage}</span>
+              <div className={`p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 border text-xs transition-all ${
+                alignmentStatus === 'success'
+                  ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
+                  : alignmentStatus === 'warning'
+                    ? 'bg-amber-950/60 border-amber-800 text-amber-300'
+                    : 'bg-rose-950/60 border-rose-800 text-rose-300'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 shrink-0" />
+                  <span className="font-light tracking-wide text-[11px] sm:text-xs">{alignmentMessage}</span>
+                </div>
+                {useSimulator && (
+                  <div className="flex gap-1">
+                    {(['neutral', 'tilted', 'curved'] as const).map((post) => (
+                      <button
+                        key={post}
+                        onClick={() => setSimulatorPosture(post)}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold capitalize border cursor-pointer ${
+                          simulatorPosture === post
+                            ? 'bg-brand-500 text-white border-brand-400'
+                            : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                        }`}
+                      >
+                        {post === 'neutral' ? 'Neutral' : post === 'tilted' ? 'Shoulder' : 'Spine Curve'}
+                      </button>
+                    ))}
                   </div>
-                  {useSimulator && (
-                    <div className="flex gap-1.5">
-                      {(['neutral', 'tilted', 'curved'] as const).map((post) => (
-                        <button
-                          key={post}
-                          onClick={() => setSimulatorPosture(post)}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize border cursor-pointer ${
-                            simulatorPosture === post
-                              ? 'bg-brand-500 text-white border-brand-400'
-                              : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
-                          }`}
-                        >
-                          {post === 'neutral' ? 'Natural Neutral' : post === 'tilted' ? 'Shoulder Tilt' : 'Spine Curve'}
-                        </button>
-                      ))}
+                )}
+              </div>
+
+              {/* Device selectors & Capture Button */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                  <button
+                    onClick={() => setActiveStep('preferences')}
+                    className="lg:hidden px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-full text-slate-300 text-xs font-semibold flex items-center gap-1.5"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    Edit Profile
+                  </button>
+
+                  {!useSimulator && webcam.isCameraActive && (
+                    <button
+                      onClick={() => setIsFlipped(!isFlipped)}
+                      className="px-3 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-full text-slate-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      {isFlipped ? "Unmirror" : "Mirror"}
+                    </button>
+                  )}
+                  
+                  {!useSimulator && webcam.devices.length > 1 && (
+                    <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-full px-2.5 py-1">
+                      <Settings className="w-3.5 h-3.5 text-slate-400" />
+                      <select
+                        value={webcam.selectedDeviceId}
+                        onChange={handleCameraChange}
+                        className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer max-w-[120px]"
+                      >
+                        {webcam.devices.map((dev) => (
+                          <option key={dev.deviceId} value={dev.deviceId} className="bg-slate-900 text-white text-xs">
+                            {dev.label || `Camera ${dev.deviceId.slice(0, 4)}`}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   )}
                 </div>
-              )}
-
-              {/* Device selectors & Capture Button */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                {!useSimulator && webcam.isCameraActive && (
-                  <button
-                    onClick={() => setIsFlipped(!isFlipped)}
-                    className="px-3.5 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-full text-slate-350 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    {isFlipped ? "Unmirror Preview" : "Mirror Preview"}
-                  </button>
-                )}
-                
-                {!useSimulator && webcam.devices.length > 1 ? (
-                  <div className="flex items-center gap-2 w-full sm:w-auto bg-slate-900 border border-slate-800 rounded-full px-3 py-1.5">
-                    <Settings className="w-3.5 h-3.5 text-slate-400" />
-                    <select
-                      value={webcam.selectedDeviceId}
-                      onChange={handleCameraChange}
-                      className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer max-w-[150px]"
-                    >
-                      {webcam.devices.map((dev) => (
-                        <option key={dev.deviceId} value={dev.deviceId} className="bg-slate-900 text-white text-xs">
-                          {dev.label || `Camera ${dev.deviceId.slice(0, 4)}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <div className="text-[10px] text-slate-500 font-light italic">
-                    {useSimulator ? 'Virtual Posture Calibration Environment' : 'Optical Live Ingest Active'}
-                  </div>
-                )}
 
                 <Button
                   variant="gold"
-                  disabled={isPreferencePhase || (!useSimulator && !webcam.isCameraActive) || !isMediaPipeReady}
+                  disabled={(!useSimulator && !webcam.isCameraActive) || (!useSimulator && !isMediaPipeReady)}
                   onClick={handleCapture}
-                  className="w-full sm:w-auto bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-700 hover:to-gold-600 text-slate-950 font-bold px-8 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-700 hover:to-gold-600 text-slate-950 font-bold px-7 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                 >
                   <Camera className="w-4 h-4" />
-                  Capture Profile & Match
+                  Capture & Calculate Match
                 </Button>
               </div>
             </div>

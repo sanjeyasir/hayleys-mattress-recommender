@@ -110,50 +110,50 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
           </div>
 
           {/* Navigation Subheader Tabs */}
-          <div className="bg-slate-100/90 border-b border-slate-200 px-6 py-2 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-1 sm:gap-2">
+          <div className="bg-slate-100/90 border-b border-slate-200 px-4 sm:px-6 py-2 flex items-center justify-between gap-3 overflow-x-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0">
               <button
                 onClick={() => setActiveTab('portfolio')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'portfolio'
                     ? 'bg-brand-950 text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-200/70'
                 }`}
               >
-                <Layers className="w-4 h-4" /> Interactive Portfolio ({mattresses.length} Models)
+                <Layers className="w-4 h-4" /> Portfolio ({mattresses.length})
               </button>
 
               <button
                 onClick={() => setActiveTab('pdf')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'pdf'
                     ? 'bg-brand-950 text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-200/70'
                 }`}
               >
-                <FileText className="w-4 h-4 text-rose-500" /> Original PDF Catalogue
+                <FileText className="w-4 h-4 text-rose-500" /> PDF Catalogue
               </button>
 
               <button
                 onClick={() => setActiveTab('sizes')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'sizes'
                     ? 'bg-brand-950 text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-200/70'
                 }`}
               >
-                <Ruler className="w-4 h-4 text-indigo-500" /> Size Dimensions
+                <Ruler className="w-4 h-4 text-indigo-500" /> Dimensions
               </button>
 
               <button
                 onClick={() => setActiveTab('bases')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'bases'
                     ? 'bg-brand-950 text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-200/70'
                 }`}
               >
-                <BedDouble className="w-4 h-4 text-emerald-600" /> Bed Bases & Headboards
+                <BedDouble className="w-4 h-4 text-emerald-600" /> Bases & Frames
               </button>
             </div>
 

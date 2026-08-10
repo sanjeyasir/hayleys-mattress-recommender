@@ -149,6 +149,7 @@ function App() {
         onOpenCatalogue={() => setIsCatalogueOpen(true)}
         onOpenExplainer={() => setIsExplainerOpen(true)}
         onOpenSplash={() => setShowSplash(true)}
+        compareCount={compareList.length}
       />
 
       {/* Main Content Sections */}
