@@ -1,171 +1,212 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Sparkles, 
   ArrowRight, 
+  BookOpen, 
   ShieldCheck, 
   Award, 
-  Layers, 
-  FileText, 
-  MapPin, 
-  CheckCircle2, 
-  Cpu
+  BedDouble,
+  User,
+  Users
 } from 'lucide-react';
 
 interface SplashScreenProps {
   onStartAssessment: () => void;
   onOpenCatalogue: () => void;
-  onOpenExplainer: () => void;
+  onOpenExplainer?: () => void;
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({
   onStartAssessment,
-  onOpenCatalogue,
-  onOpenExplainer
+  onOpenCatalogue
 }) => {
+  const [sleeperType, setSleeperType] = useState<'individual' | 'couple'>('individual');
+  const [userName, setUserName] = useState<string>('');
+
+  const handleEnter = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (userName.trim()) {
+      sessionStorage.setItem('hayleys_user_name', userName.trim());
+      sessionStorage.setItem('hayleys_sleeper_type', sleeperType);
+    }
+    onStartAssessment();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 text-white overflow-y-auto">
-      {/* Background ambient lighting effects */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 text-white overflow-y-auto p-3 sm:p-6 backdrop-blur-2xl">
+      {/* Background ambient lighting */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gold-600/15 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-900/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute inset-0 grid-overlay opacity-[0.03]" />
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#4A90E2]/25 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-[#194983]/35 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute inset-0 grid-overlay opacity-25" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 flex flex-col items-center text-center space-y-10 my-auto">
-        
-        {/* Top Badges */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-wrap items-center justify-center gap-3"
-        >
-          <span className="px-4 py-1.5 rounded-full bg-brand-900/80 border border-brand-700/60 text-brand-300 text-xs font-bold tracking-widest uppercase flex items-center gap-2 shadow-lg">
-            <Sparkles className="w-3.5 h-3.5 text-gold-400 fill-gold-400" />
-            HAYLEYS MATTRESSES • OFFICIAL PORTFOLIO
-          </span>
-          <span className="px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-1.5">
-            🇨🇦 Canadian Springwall Partnership
-          </span>
-          <span className="px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center gap-1.5">
-            🌿 100% Eco-Friendly Rubberized Coir
-          </span>
-        </motion.div>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-5xl bg-slate-900 text-slate-900 rounded-3xl overflow-hidden shadow-2xl my-auto grid grid-cols-1 lg:grid-cols-12 border-2 border-[#4A90E2]/40"
+      >
+        {/* Large Prominent High-Contrast Visual Section (7 cols on lg) */}
+        <div className="lg:col-span-7 bg-[#081628] p-4 sm:p-6 flex flex-col justify-between items-center relative overflow-hidden border-b lg:border-b-0 lg:border-r border-[#194983]">
+          
+          {/* Subtle glow behind the image */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#194983]/40 via-transparent to-[#4A90E2]/30 pointer-events-none" />
 
-        {/* Hero Branding Title */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="space-y-4 max-w-3xl"
-        >
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white leading-none">
-            Sleep Happily <br />
-            <span className="bg-gradient-to-r from-gold-400 via-gold-200 to-brand-300 bg-clip-text text-transparent">
-              Ever After.
-            </span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-slate-300 font-light max-w-2xl mx-auto leading-relaxed pt-2">
-            Welcome to Sri Lanka's premier sleep experience. Combining five decades of natural Ceylon coconut coir craftsmanship with Canadian ergonomic pocket spring engineering.
-          </p>
-        </motion.div>
-
-        {/* Key Business Value Pillars Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full text-left"
-        >
-          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-5 rounded-2xl space-y-2.5 hover:border-brand-500/40 transition-all group">
-            <div className="w-10 h-10 rounded-xl bg-brand-950 border border-brand-800 flex items-center justify-center text-brand-400 group-hover:scale-110 transition-transform">
-              <Layers className="w-5 h-5" />
+          {/* Top Brand Tagline */}
+          <div className="w-full flex items-center justify-between pb-3 z-10">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#194983] to-[#4A90E2] flex items-center justify-center text-white shadow-md">
+                <BedDouble className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white leading-none tracking-tight">
+                  HAYLEYS <span className="text-[#4A90E2]">MATTRESSES</span>
+                </h3>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
+                  OFFICIAL SLEEP PORTAL
+                </span>
+              </div>
             </div>
-            <h2 className="text-sm font-bold text-white">10 Authentic Hayleys Models</h2>
-            <p className="text-xs text-slate-400 font-light leading-relaxed">
-              Complete Spring, 100% Natural Rubberized Coir, and High-Resilience Foam mattress collections with up to 15-year warranty.
+
+            <span className="px-3 py-1 rounded-full bg-[#194983]/60 border border-[#4A90E2]/50 text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+              <Sparkles className="w-3 h-3 text-[#4A90E2]" />
+              Official Visual Showcase
+            </span>
+          </div>
+
+          {/* LARGE HIGH-CONTRAST IMAGE CONTAINER */}
+          <div className="w-full my-auto py-2 z-10 flex items-center justify-center">
+            <div className="relative w-full max-w-[480px] max-h-[520px] rounded-2xl overflow-hidden shadow-2xl border-2 border-[#4A90E2]/50 bg-black group">
+              <img 
+                src="/content.jpg" 
+                alt="Hayleys Mattresses Sleep Happily Ever After" 
+                className="w-full h-full max-h-[520px] object-contain object-center bg-[#081628] group-hover:scale-102 transition-transform duration-500"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/content.png';
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Bottom Trust Indicators */}
+          <div className="w-full pt-3 mt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-300 font-medium z-10">
+            <div className="flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-gold-400" />
+              <span>Canadian Springwall License</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>100% Natural Rubberized Coir</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Welcome & Action Form (5 cols on lg) */}
+        <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-white space-y-6">
+          
+          {/* Header */}
+          <div className="space-y-2">
+            <span className="inline-block px-3 py-1 rounded-full bg-[#194983]/10 text-[#194983] text-[10px] font-extrabold uppercase tracking-wider">
+              Smart Mattress Recommender
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 leading-tight">
+              Sleep Happily <br />
+              <span className="text-[#194983]">Ever After.</span>
+            </h2>
+            <p className="text-xs text-slate-500 font-light leading-relaxed">
+              Find your ideal mattress matched to your posture, comfort feel, and spinal support needs.
             </p>
           </div>
 
-          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-5 rounded-2xl space-y-2.5 hover:border-brand-500/40 transition-all group">
-            <div className="w-10 h-10 rounded-xl bg-indigo-950 border border-indigo-800 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-              <Cpu className="w-5 h-5" />
+          {/* Simple Form */}
+          <form onSubmit={handleEnter} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Your Name <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Kasun Perera"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder-slate-400 text-xs focus:outline-none focus:border-[#4A90E2] focus:ring-2 focus:ring-[#4A90E2]/20 transition-all font-medium"
+              />
             </div>
-            <h2 className="text-sm font-bold text-white">AI Posture Biometrics</h2>
-            <p className="text-xs text-slate-400 font-light leading-relaxed">
-              Contactless spine mapping, natural body asymmetry analysis, BMI load modeling, and partner motion-isolation matching.
-            </p>
-          </div>
 
-          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-5 rounded-2xl space-y-2.5 hover:border-brand-500/40 transition-all group">
-            <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-800 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-              <ShieldCheck className="w-5 h-5" />
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Sleeping Arrangement
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setSleeperType('individual')}
+                  className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                    sleeperType === 'individual'
+                      ? 'bg-[#194983]/10 border-[#194983] text-[#194983] shadow-xs ring-1 ring-[#194983]'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <User className="w-4 h-4 text-[#194983]" />
+                  <div>
+                    <span className="text-xs font-bold block leading-tight">Solo Sleeper</span>
+                    <span className="text-[10px] text-slate-400 block">Single / Queen</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSleeperType('couple')}
+                  className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                    sleeperType === 'couple'
+                      ? 'bg-[#194983]/10 border-[#194983] text-[#194983] shadow-xs ring-1 ring-[#194983]'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <Users className="w-4 h-4 text-[#194983]" />
+                  <div>
+                    <span className="text-xs font-bold block leading-tight">Couple</span>
+                    <span className="text-[10px] text-slate-400 block">Queen / King</span>
+                  </div>
+                </button>
+              </div>
             </div>
-            <h2 className="text-sm font-bold text-white">Certified Global Quality</h2>
-            <p className="text-xs text-slate-400 font-light leading-relaxed">
-              ISO 9001 / 14001 certified manufacturing, OEKO-TEX certified allergy-free fabrics, and Colombo flagship showrooms.
-            </p>
-          </div>
-        </motion.div>
 
-        {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full pt-2"
-        >
-          <button
-            onClick={onStartAssessment}
-            className="w-full sm:w-auto px-10 py-4 rounded-full bg-gradient-to-r from-gold-500 via-gold-400 to-amber-500 hover:from-gold-600 hover:to-amber-600 text-slate-950 font-black text-sm tracking-wide transition-all shadow-xl shadow-gold-500/20 hover:shadow-gold-500/30 flex items-center justify-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
-          >
-            <span>Start Biometric Assessment</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+            <div className="pt-2 flex flex-col gap-2.5">
+              <button
+                type="submit"
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-[#194983] to-[#4A90E2] hover:from-[#133867] hover:to-[#357ecf] text-white font-bold text-xs tracking-wide shadow-lg shadow-[#194983]/25 transition-all flex items-center justify-center gap-2 cursor-pointer group"
+              >
+                <span>Find My Perfect Mattress</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </button>
 
-          <button
-            onClick={onOpenCatalogue}
-            className="w-full sm:w-auto px-7 py-4 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <FileText className="w-4 h-4 text-brand-400" />
-            <span>Explore Hayleys Catalogue</span>
-          </button>
+              <button
+                type="button"
+                onClick={onOpenCatalogue}
+                className="w-full py-3 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <BookOpen className="w-4 h-4 text-[#194983]" />
+                <span>Explore Full Catalogue</span>
+              </button>
+            </div>
+          </form>
 
-          <button
-            onClick={onOpenExplainer}
-            className="w-full sm:w-auto px-6 py-4 rounded-full bg-transparent hover:bg-slate-900/50 text-slate-400 hover:text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <Cpu className="w-3.5 h-3.5 text-brand-400" />
-            <span>Algorithm Science</span>
-          </button>
-        </motion.div>
-
-        {/* Bottom Trust Line & Showroom locations */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="pt-6 border-t border-slate-800/80 w-full flex flex-wrap items-center justify-between gap-4 text-[11px] text-slate-500 font-light"
-        >
-          <div className="flex items-center gap-2 text-slate-400">
-            <MapPin className="w-3.5 h-3.5 text-brand-400" />
-            <span>Experience Centers: 400 Deans Rd, Colombo 10 • Ekala • Galle</span>
+          {/* Quick Direct Link */}
+          <div className="text-center pt-2 border-t border-slate-100">
+            <button
+              onClick={onStartAssessment}
+              className="text-[11px] text-slate-400 hover:text-[#194983] font-medium transition-colors cursor-pointer"
+            >
+              Skip directly to mattress collection →
+            </button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 100% Deterministic Math
-            </span>
-            <span className="flex items-center gap-1">
-              <Award className="w-3.5 h-3.5 text-gold-500" /> Canadian Springwall Certified
-            </span>
-          </div>
-        </motion.div>
+        </div>
 
-      </div>
+      </motion.div>
     </div>
   );
 };

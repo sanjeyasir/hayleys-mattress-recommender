@@ -4,20 +4,15 @@ import {
   X, 
   FileText, 
   Download, 
-  ExternalLink, 
   Layers, 
-  Award, 
-  Maximize2, 
-  ShieldCheck, 
-  MapPin, 
-  Phone, 
-  Mail, 
   CheckCircle2,
-  Sparkles,
   BedDouble,
-  Ruler
+  Ruler,
+  Eye,
+  Maximize2
 } from 'lucide-react';
 import mattressesData from '../data/mattresses.json';
+import { getMattressAsset } from '../data/mattressAssets';
 import type { Mattress } from '../types';
 
 interface CatalogueViewerModalProps {
@@ -34,12 +29,20 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
   const [activeTab, setActiveTab] = useState<'portfolio' | 'pdf' | 'sizes' | 'bases'>(initialTab);
   const [categoryFilter, setCategoryFilter] = useState<'All' | 'Spring' | 'Rubberized Coir' | 'Foam'>('All');
   const [selectedMattressDetail, setSelectedMattressDetail] = useState<Mattress | null>(null);
+  const [imagePreview, setImagePreview] = useState<{ title: string; src: string } | null>(null);
+  
+  // Track toggle between 'photo' and 'crossSection' per mattress id
+  const [activeImageView, setActiveImageView] = useState<Record<string, 'photo' | 'crossSection'>>({});
 
   const mattresses = mattressesData as Mattress[];
 
   const filteredMattresses = categoryFilter === 'All'
     ? mattresses
     : mattresses.filter(m => m.category === categoryFilter);
+
+  const toggleImageView = (id: string, view: 'photo' | 'crossSection') => {
+    setActiveImageView(prev => ({ ...prev, [id]: view }));
+  };
 
   const sizeGuidelines = [
     { type: 'Single', dimensions: ['72" × 36"', '75" × 36"', '78" × 36"'], idealFor: 'Solo sleepers, kids & teens rooms, studio divans' },
@@ -75,25 +78,25 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-md">
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 20 }}
+          initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 20 }}
+          exit={{ opacity: 0, scale: 0.96, y: 15 }}
           className="bg-white rounded-3xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200"
         >
           {/* Top Modal Header */}
-          <div className="bg-slate-950 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
+          <div className="bg-[#0c2444] text-white px-6 py-4 flex items-center justify-between border-b border-[#194983]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center text-white shadow-md">
-                <Sparkles className="w-5 h-5 text-gold-400" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A90E2] to-[#194983] flex items-center justify-center text-white shadow-md">
+                <BedDouble className="w-5 h-5 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-base font-extrabold tracking-wide text-white">Hayleys Mattresses</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-gold-500/20 text-gold-400 text-[10px] font-bold border border-gold-500/30">
-                    Official Product Catalogue
+                  <span className="px-2 py-0.5 rounded-full bg-[#4A90E2]/20 text-[#4A90E2] text-[10px] font-bold border border-[#4A90E2]/30">
+                    Product Catalogue
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 font-light">
+                <p className="text-[11px] text-slate-300 font-light">
                   Sleep Happily Ever After • Canadian Springwall Licensed • ISO 9001 & 14001 Certified
                 </p>
               </div>
@@ -102,7 +105,7 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="p-2 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
               title="Close Catalogue"
             >
               <X className="w-6 h-6" />
@@ -114,46 +117,46 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
             <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0">
               <button
                 onClick={() => setActiveTab('portfolio')}
-                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'portfolio'
-                    ? 'bg-brand-950 text-white shadow-sm'
+                    ? 'bg-[#194983] text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-200/70'
                 }`}
               >
-                <Layers className="w-4 h-4" /> Portfolio ({mattresses.length})
-              </button>
-
-              <button
-                onClick={() => setActiveTab('pdf')}
-                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
-                  activeTab === 'pdf'
-                    ? 'bg-brand-950 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-200/70'
-                }`}
-              >
-                <FileText className="w-4 h-4 text-rose-500" /> PDF Catalogue
+                <Layers className="w-4 h-4" /> All Mattresses ({mattresses.length})
               </button>
 
               <button
                 onClick={() => setActiveTab('sizes')}
-                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'sizes'
-                    ? 'bg-brand-950 text-white shadow-sm'
+                    ? 'bg-[#194983] text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-200/70'
                 }`}
               >
-                <Ruler className="w-4 h-4 text-indigo-500" /> Dimensions
+                <Ruler className="w-4 h-4 text-[#4A90E2]" /> Sizes & Dimensions
               </button>
 
               <button
                 onClick={() => setActiveTab('bases')}
-                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'bases'
-                    ? 'bg-brand-950 text-white shadow-sm'
+                    ? 'bg-[#194983] text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-200/70'
                 }`}
               >
-                <BedDouble className="w-4 h-4 text-emerald-600" /> Bases & Frames
+                <BedDouble className="w-4 h-4 text-emerald-600" /> Bed Bases & Divans
+              </button>
+
+              <button
+                onClick={() => setActiveTab('pdf')}
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer ${
+                  activeTab === 'pdf'
+                    ? 'bg-[#194983] text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-200/70'
+                }`}
+              >
+                <FileText className="w-4 h-4 text-rose-500" /> PDF Catalogue
               </button>
             </div>
 
@@ -162,24 +165,16 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
               <a
                 href="/mattress_catalogue.pdf"
                 download="Hayleys_Mattress_Catalogue.pdf"
-                className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all"
+                className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all"
               >
-                <Download className="w-3.5 h-3.5 text-brand-600" /> Download PDF (2.0 MB)
-              </a>
-              <a
-                href="/mattress_catalogue.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all"
-              >
-                <ExternalLink className="w-3.5 h-3.5 text-slate-500" /> Open Fullscreen
+                <Download className="w-3.5 h-3.5 text-[#194983]" /> Download PDF
               </a>
             </div>
           </div>
 
           {/* Modal Main Content Body */}
-          <div className="flex-grow overflow-y-auto p-6 bg-slate-50">
-            {/* TAB 1: INTERACTIVE DIGITAL PORTFOLIO */}
+          <div className="flex-grow overflow-y-auto p-4 sm:p-6 bg-slate-50">
+            {/* TAB 1: PRODUCT PORTFOLIO WITH IMAGES & CROSS SECTIONS */}
             {activeTab === 'portfolio' && (
               <div className="space-y-6">
                 {/* Category Selector Chips */}
@@ -189,9 +184,9 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
                       <button
                         key={cat}
                         onClick={() => setCategoryFilter(cat)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           categoryFilter === cat
-                            ? 'bg-brand-600 text-white shadow-md'
+                            ? 'bg-[#194983] text-white shadow-md'
                             : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                         }`}
                       >
@@ -207,389 +202,328 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
 
                 {/* Mattress Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredMattresses.map((mattress) => (
-                    <div
-                      key={mattress.id}
-                      className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all hover:border-brand-400 group"
-                    >
-                      <div>
-                        {/* Card Header & Badges */}
-                        <div className="flex justify-between items-start mb-3">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                            mattress.category === 'Spring' 
-                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                              : mattress.category === 'Rubberized Coir'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}>
-                            {mattress.category} Series
-                          </span>
+                  {filteredMattresses.map((mattress) => {
+                    const assets = getMattressAsset(mattress.id);
+                    const currentView = activeImageView[mattress.id] || 'photo';
+                    const displayImage = currentView === 'photo' ? assets.photo : assets.crossSection;
 
-                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                            <ShieldCheck className="w-3.5 h-3.5 text-brand-600" />
-                            {mattress.warranty}
-                          </div>
-                        </div>
+                    return (
+                      <div
+                        key={mattress.id}
+                        className="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-xs hover:shadow-lg transition-all hover:border-[#4A90E2]/60 group"
+                      >
+                        <div>
+                          {/* Image Container with View Switcher */}
+                          <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden border-b border-slate-100">
+                            <img
+                              src={displayImage}
+                              alt={mattress.name}
+                              className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-300"
+                            />
 
-                        {/* Title & Thickness */}
-                        <h4 className="text-lg font-black text-slate-900 group-hover:text-brand-700 transition-colors">
-                          {mattress.name}
-                        </h4>
-                        <div className="text-xs font-semibold text-brand-600 mb-3">
-                          Height / Thickness: {mattress.thickness}
-                        </div>
-
-                        <p className="text-xs text-slate-500 font-light leading-relaxed mb-4 line-clamp-3">
-                          {mattress.description}
-                        </p>
-
-                        {/* Ratings Strip */}
-                        <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-100 mb-4 bg-slate-50/60 rounded-xl px-2">
-                          <div className="text-center">
-                            <span className="text-[9px] text-slate-400 uppercase font-semibold block">Firmness</span>
-                            <span className="text-xs font-bold text-slate-800">{mattress.firmness}/10</span>
-                          </div>
-                          <div className="text-center border-x border-slate-200">
-                            <span className="text-[9px] text-slate-400 uppercase font-semibold block">Cooling</span>
-                            <span className="text-xs font-bold text-sky-600">{mattress.coolingRating}/5</span>
-                          </div>
-                          <div className="text-center">
-                            <span className="text-[9px] text-slate-400 uppercase font-semibold block">Pressure Relief</span>
-                            <span className="text-xs font-bold text-rose-600">{mattress.pressureReliefRating}/5</span>
-                          </div>
-                        </div>
-
-                        {/* Layer Preview bullets */}
-                        <div className="space-y-1 mb-4">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                            Key Structural Layers ({mattress.layers.length} Layers):
-                          </span>
-                          {mattress.layers.slice(0, 3).map((layer, idx) => (
-                            <div key={idx} className="flex items-center gap-1.5 text-[11px] text-slate-600 font-light truncate">
-                              <CheckCircle2 className="w-3 h-3 text-brand-500 shrink-0" />
-                              <span className="truncate">{layer}</span>
+                            {/* View Switcher Overlay Pills */}
+                            <div className="absolute top-3 right-3 flex items-center bg-black/60 backdrop-blur-md p-0.5 rounded-xl border border-white/20 text-[10px]">
+                              <button
+                                onClick={() => toggleImageView(mattress.id, 'photo')}
+                                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                                  currentView === 'photo'
+                                    ? 'bg-[#4A90E2] text-white shadow-xs'
+                                    : 'text-white/80 hover:text-white'
+                                }`}
+                              >
+                                Mattress
+                              </button>
+                              <button
+                                onClick={() => toggleImageView(mattress.id, 'crossSection')}
+                                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                                  currentView === 'crossSection'
+                                    ? 'bg-[#4A90E2] text-white shadow-xs'
+                                    : 'text-white/80 hover:text-white'
+                                }`}
+                              >
+                                Cross Section
+                              </button>
                             </div>
-                          ))}
-                          {mattress.layers.length > 3 && (
-                            <span className="text-[10px] text-brand-600 font-medium pl-4 block">
-                              + {mattress.layers.length - 3} more internal engineered layers
-                            </span>
-                          )}
+
+                            {/* Category Badge */}
+                            <div className="absolute top-3 left-3">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-sm ${
+                                mattress.category === 'Spring' 
+                                  ? 'bg-[#194983] text-white'
+                                  : mattress.category === 'Rubberized Coir'
+                                    ? 'bg-emerald-700 text-white'
+                                    : 'bg-indigo-700 text-white'
+                              }`}>
+                                {mattress.category}
+                              </span>
+                            </div>
+
+                            {/* Zoom Button */}
+                            <button
+                              onClick={() => setImagePreview({ title: `${mattress.name} (${currentView === 'photo' ? 'Exterior' : 'Internal Layers'})`, src: displayImage })}
+                              className="absolute bottom-3 right-3 p-1.5 rounded-lg bg-black/50 hover:bg-black/75 text-white backdrop-blur-sm transition-all cursor-pointer"
+                              title="Zoom Image"
+                            >
+                              <Maximize2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {/* Content Body */}
+                          <div className="p-5 space-y-3">
+                            <div className="flex justify-between items-baseline">
+                              <h4 className="text-base font-black text-slate-900 group-hover:text-[#194983] transition-colors">
+                                {mattress.name}
+                              </h4>
+                              <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                                {mattress.warranty}
+                              </span>
+                            </div>
+
+                            <div className="text-xs font-semibold text-[#194983]">
+                              Thickness: {mattress.thickness}
+                            </div>
+
+                            <p className="text-xs text-slate-500 font-light leading-relaxed line-clamp-2">
+                              {mattress.description}
+                            </p>
+
+                            {/* Ratings Strip */}
+                            <div className="grid grid-cols-3 gap-2 py-2.5 border-y border-slate-100 bg-slate-50/80 rounded-xl px-2">
+                              <div className="text-center">
+                                <span className="text-[9px] text-slate-400 uppercase font-semibold block">Firmness</span>
+                                <span className="text-xs font-bold text-slate-800">{mattress.firmness}/10</span>
+                              </div>
+                              <div className="text-center border-x border-slate-200/80">
+                                <span className="text-[9px] text-slate-400 uppercase font-semibold block">Cooling</span>
+                                <span className="text-xs font-bold text-[#194983]">{mattress.coolingRating}/5</span>
+                              </div>
+                              <div className="text-center">
+                                <span className="text-[9px] text-slate-400 uppercase font-semibold block">Support</span>
+                                <span className="text-xs font-bold text-emerald-700">{mattress.supportLevel}</span>
+                              </div>
+                            </div>
+
+                            {/* Key Highlights */}
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {mattress.keyTechnologies.slice(0, 3).map(tech => (
+                                <span key={tech} className="px-2 py-0.5 rounded-md bg-slate-100 text-[10px] text-slate-700 font-medium">
+                                  {tech}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card Bottom CTA */}
+                        <div className="p-5 pt-0">
+                          <button
+                            onClick={() => setSelectedMattressDetail(mattress)}
+                            className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-[#194983] text-slate-700 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View Full Specifications</span>
+                          </button>
                         </div>
                       </div>
-
-                      {/* Modal Trigger for Layer by Layer Breakdown */}
-                      <button
-                        onClick={() => setSelectedMattressDetail(mattress)}
-                        className="w-full mt-2 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-brand-900 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-                      >
-                        <Layers className="w-3.5 h-3.5" /> View Layer Cross-Section & Specs
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* TAB 2: ORIGINAL EMBEDDED PDF DOCUMENT */}
-            {activeTab === 'pdf' && (
-              <div className="h-full flex flex-col bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 relative">
-                <div className="bg-slate-950 px-4 py-2 flex items-center justify-between text-xs text-slate-300 border-b border-slate-800">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-rose-400" />
-                    <span className="font-semibold text-white">mattress_catalogue.pdf</span>
-                    <span className="text-slate-500">| 23 Pages • 300 DPI High Resolution</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] text-slate-400">Viewing direct from Hayleys archive</span>
-                    <a
-                      href="/mattress_catalogue.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-brand-400 hover:text-brand-300 font-bold flex items-center gap-1"
-                    >
-                      <Maximize2 className="w-3 h-3" /> Full Screen Mode
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex-grow w-full h-[650px] bg-slate-800">
-                  <object
-                    data="/mattress_catalogue.pdf"
-                    type="application/pdf"
-                    className="w-full h-full"
-                  >
-                    <div className="p-12 text-center text-white space-y-4">
-                      <p className="text-base font-bold">PDF preview is supported in modern browsers.</p>
-                      <p className="text-xs text-slate-400">Click below to open or download the complete 23-page Hayleys Mattress catalogue directly.</p>
-                      <a
-                        href="/mattress_catalogue.pdf"
-                        download="Hayleys_Mattress_Catalogue.pdf"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-600 text-white font-bold text-sm shadow-lg hover:bg-brand-500 transition-all"
-                      >
-                        <Download className="w-4 h-4" /> Download PDF Brochure
-                      </a>
-                    </div>
-                  </object>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: SIZES & DIMENSION GUIDELINES */}
+            {/* TAB 2: SIZES & DIMENSIONS */}
             {activeTab === 'sizes' && (
-              <div className="space-y-8">
-                <div className="max-w-3xl">
-                  <span className="text-xs font-bold text-brand-600 uppercase tracking-widest block mb-1">PRECISION TAILORING</span>
-                  <h3 className="text-2xl font-black text-slate-900">Hayleys Mattresses Size Guidelines</h3>
-                  <p className="text-sm text-slate-500 font-light mt-1">
-                    Once you’ve selected your ideal comfort and support model, choose the exact dimensions to fit your space. Hayleys also manufactures custom non-standard sizes upon request.
-                  </p>
-                </div>
-
-                {/* Size Grid Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {sizeGuidelines.map((sg) => (
-                    <div key={sg.type} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="w-12 h-12 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-700 font-black text-sm mb-4">
-                          {sg.type}
-                        </div>
-                        <h4 className="text-xl font-extrabold text-slate-900 mb-1">{sg.type} Bed</h4>
-                        <p className="text-xs text-slate-400 font-light mb-4">{sg.idealFor}</p>
-
-                        <div className="space-y-2 pt-2 border-t border-slate-100">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Standard Length Options:</span>
-                          {sg.dimensions.map((dim) => (
-                            <div key={dim} className="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-xs font-bold text-slate-800 flex justify-between items-center">
-                              <span>{dim}</span>
-                              <span className="text-[10px] text-slate-400 font-normal">Inch Standard</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-brand-700 font-medium">
-                        ✓ Available in all 10 mattress models
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Custom Sizes Callout */}
-                <div className="bg-brand-950 text-white rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-                  <div className="absolute -right-10 -top-10 w-48 h-48 bg-brand-700/20 rounded-full blur-2xl" />
-                  <div className="space-y-2 z-10">
-                    <h4 className="text-xl font-extrabold">Need Custom Non-Standard Sizing?</h4>
-                    <p className="text-xs text-slate-300 max-w-xl font-light leading-relaxed">
-                      Hayleys Mattresses offers precision custom sizing engineered to fit your antique wooden four-poster beds, imported bed frames, or customized bedroom architecture.
+              <div className="space-y-6 max-w-4xl mx-auto">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                  <div>
+                    <h4 className="text-lg font-black text-slate-900">Hayleys Standard Mattress Dimensions</h4>
+                    <p className="text-xs text-slate-500 font-light mt-1 leading-relaxed">
+                      All Hayleys mattresses are manufactured in international metric & imperial standard sizes, with custom dimensions available on request.
                     </p>
                   </div>
-                  <div className="z-10 shrink-0">
-                    <a
-                      href="tel:+94760231209"
-                      className="px-6 py-3 rounded-xl bg-gold-500 hover:bg-gold-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md transition-all"
-                    >
-                      <Phone className="w-4 h-4" /> Call Hotline: +94 76 0231209
-                    </a>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {sizeGuidelines.map(sz => (
+                      <div key={sz.type} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-sm font-extrabold text-[#194983]">{sz.type} Size</h5>
+                          <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded-md border border-slate-200">Standard</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {sz.dimensions.map(dim => (
+                            <span key={dim} className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800">
+                              {dim}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-xs text-slate-500 font-light">{sz.idealFor}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 4: BED BASES & HEADBOARDS */}
+            {/* TAB 3: BED BASES & FRAMES */}
             {activeTab === 'bases' && (
-              <div className="space-y-8">
-                <div className="max-w-3xl">
-                  <span className="text-xs font-bold text-brand-600 uppercase tracking-widest block mb-1">FOUNDATION ERGONOMICS</span>
-                  <h3 className="text-2xl font-black text-slate-900">Hayleys Bed Bases & Headboards</h3>
-                  <p className="text-sm text-slate-500 font-light mt-1">
-                    Conceived to work in perfect harmony with Hayleys mattresses to maintain longevity and performance.
-                  </p>
-                  <div className="mt-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-medium">
-                    ⚠️ Official Catalogue Notice: Hayleys mattresses cannot be placed on solid unventilated plywood or hardboard top divans. Always pair with ventilated Hayleys slatted, pocketed, or reinforced bases.
+              <div className="space-y-6 max-w-4xl mx-auto">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                  <div>
+                    <h4 className="text-lg font-black text-slate-900">Hayleys Divan & Storage Bed Bases</h4>
+                    <p className="text-xs text-slate-500 font-light mt-1 leading-relaxed">
+                      Solid wood foundation frames designed to support Hayleys mattresses for optimal lifespan and zero sagging.
+                    </p>
                   </div>
-                </div>
 
-                {/* Bases list */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {bedBases.map((base) => (
-                    <div key={base.name} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start mb-3">
-                          <h4 className="text-lg font-bold text-slate-900">{base.name}</h4>
-                          <span className="px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">
-                            {base.heights}
-                          </span>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {bedBases.map(b => (
+                      <div key={b.name} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-extrabold text-slate-900">{b.name}</h5>
+                          <span className="text-xs font-semibold text-[#194983] block">{b.heights}</span>
+                          <p className="text-xs text-slate-500 font-light leading-relaxed">{b.desc}</p>
                         </div>
-                        <p className="text-xs text-slate-500 font-light mb-4 leading-relaxed">{base.desc}</p>
-                        
-                        <div className="space-y-2 pt-3 border-t border-slate-100">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Features:</span>
-                          {base.features.map((feat) => (
-                            <div key={feat} className="flex items-center gap-2 text-xs text-slate-700 font-medium">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-                              <span>{feat}</span>
+                        <div className="space-y-1 pt-3 border-t border-slate-200">
+                          {b.features.map(f => (
+                            <div key={f} className="flex items-center gap-1.5 text-[11px] text-slate-600">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#4A90E2] shrink-0" />
+                              <span>{f}</span>
                             </div>
                           ))}
                         </div>
                       </div>
-
-                      <div className="mt-6 pt-3 border-t border-slate-100 text-[11px] text-slate-400">
-                        Floor clearance: 2.5 Inches (Supports castors & customized fabric wraps)
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Headboard collection highlight */}
-                <div className="bg-white rounded-3xl p-8 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                  <div className="space-y-4">
-                    <span className="text-xs font-bold text-brand-600 uppercase tracking-widest">AESTHETIC BEDROOM HARMONY</span>
-                    <h4 className="text-2xl font-black text-slate-900">Range of 7 Designer Headboards</h4>
-                    <p className="text-xs text-slate-500 font-light leading-relaxed">
-                      A headboard creates a pleasing and reassuring backdrop to your sleep sanctuary. Hayleys offers seven stylish designer headboards available in a rich palette of premium fabrics, ensuring a perfect design union between headboard, mattress, and base.
-                    </p>
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {['Tufted Diamond', 'Vertical Fluting', 'Minimalist Block', 'Floating Panels', 'Chesterfield', 'Modern Linear', 'Curved Wings'].map(h => (
-                        <span key={h} className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
-                          {h}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-900 text-white p-6 rounded-2xl space-y-4">
-                    <h5 className="text-sm font-bold text-gold-400 uppercase tracking-wider flex items-center gap-2">
-                      <Award className="w-4 h-4" /> Hayleys Quality Standards
-                    </h5>
-                    <ul className="space-y-2 text-xs text-slate-300 font-light">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> ISO 9001:2015 Quality Management Certified
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> ISO 14001:2015 Environmental System
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> ISPA (International Sleep Products Association) Member
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> OEKO-TEX Standard 100 Certified Skin-Safe Fabrics
-                      </li>
-                    </ul>
+                    ))}
                   </div>
                 </div>
               </div>
             )}
+
+            {/* TAB 4: EMBEDDED PDF VIEWER */}
+            {activeTab === 'pdf' && (
+              <div className="w-full h-full min-h-[600px] flex flex-col rounded-2xl overflow-hidden border border-slate-200 bg-white">
+                <div className="p-4 bg-slate-100 flex items-center justify-between border-b border-slate-200">
+                  <span className="text-xs font-bold text-slate-700">Official Hayleys Mattresses PDF Document</span>
+                  <a
+                    href="/mattress_catalogue.pdf"
+                    download="Hayleys_Mattress_Catalogue.pdf"
+                    className="px-3 py-1 rounded-lg bg-[#194983] text-white text-xs font-bold hover:bg-[#133867] transition-all"
+                  >
+                    Download PDF File
+                  </a>
+                </div>
+                <iframe
+                  src="/mattress_catalogue.pdf"
+                  className="w-full flex-grow min-h-[550px] border-0"
+                  title="Hayleys Mattress Catalogue PDF"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Footer Contact Strip */}
-          <div className="bg-slate-950 text-slate-400 px-6 py-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs">
-            <div className="flex items-center gap-6">
-              <span className="flex items-center gap-1.5 text-white font-medium">
-                <MapPin className="w-3.5 h-3.5 text-brand-400" /> Showrooms: Colombo • Ekala • Galle
-              </span>
-              <span className="hidden sm:flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-gold-400" /> Hotline: +94 76 0231209
-              </span>
-              <span className="hidden md:flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-slate-400" /> mattress.shop@hayleysfibre.com
-              </span>
-            </div>
-
-            <div className="text-[11px] text-slate-500">
-              © Hayleys Fibre PLC. All Rights Reserved.
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Modal Sub-View for Detailed Layer Cross-Section */}
-        <AnimatePresence>
+          {/* MATTRESS DETAIL SLIDEOUT MODAL */}
           {selectedMattressDetail && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-60 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
-            >
+            <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm">
               <motion.div
-                initial={{ scale: 0.95, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 20 }}
-                className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative border border-slate-200"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200 relative"
               >
                 <button
                   onClick={() => setSelectedMattressDetail(null)}
-                  className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-all cursor-pointer"
+                  className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
 
-                <div className="space-y-6">
+                <div className="space-y-4">
+                  {/* Photo and Cross-section preview */}
+                  {(() => {
+                    const assets = getMattressAsset(selectedMattressDetail.id);
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 relative">
+                          <img src={assets.photo} alt={selectedMattressDetail.name} className="w-full h-full object-cover" />
+                          <span className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-bold">
+                            Exterior View
+                          </span>
+                        </div>
+                        <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 relative">
+                          <img src={assets.crossSection} alt={`${selectedMattressDetail.name} Layers`} className="w-full h-full object-cover" />
+                          <span className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-bold">
+                            Internal Cross Section
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   <div>
-                    <span className="px-3 py-1 rounded-full bg-brand-50 text-brand-800 font-extrabold text-xs border border-brand-200">
+                    <span className="text-xs font-bold text-[#194983] uppercase tracking-wider">
                       {selectedMattressDetail.category} Series • {selectedMattressDetail.warranty}
                     </span>
-                    <h3 className="text-2xl font-black text-slate-950 mt-3">{selectedMattressDetail.name}</h3>
-                    <p className="text-xs text-brand-600 font-bold mt-1">Height / Thickness: {selectedMattressDetail.thickness}</p>
-                    <p className="text-xs text-slate-500 font-light mt-2 leading-relaxed">{selectedMattressDetail.description}</p>
+                    <h3 className="text-xl font-black text-slate-900 mt-1">{selectedMattressDetail.name}</h3>
+                    <p className="text-xs text-slate-500 font-light mt-2 leading-relaxed">
+                      {selectedMattressDetail.description}
+                    </p>
                   </div>
 
-                  {/* Layer by Layer Visual Cross Section */}
-                  <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                    <h5 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-brand-600" /> Layer-by-Layer Material Architecture (From Top to Base):
-                    </h5>
-                    <div className="space-y-2 pt-2">
+                  {/* Internal Layers */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <h5 className="text-xs font-bold text-slate-900">Internal Structural Layers:</h5>
+                    <div className="space-y-1.5">
                       {selectedMattressDetail.layers.map((layer, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-800 shadow-2xs"
-                        >
-                          <span className="w-6 h-6 rounded-full bg-brand-950 text-white text-[11px] font-bold flex items-center justify-center shrink-0">
-                            {idx + 1}
-                          </span>
-                          <span className="leading-snug">{layer.replace(/^\d+\.\s*/, '')}</span>
+                        <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-700 font-medium">
+                          {layer}
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Certifications and Key Tech */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Key Features</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {selectedMattressDetail.keyTechnologies.map(t => (
-                          <span key={t} className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-700">
-                            {t}
-                          </span>
+                  {/* Materials & Certifications */}
+                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 text-xs">
+                    <div>
+                      <span className="font-bold text-slate-900 block mb-1">Key Materials:</span>
+                      <ul className="space-y-1 text-slate-600 font-light">
+                        {selectedMattressDetail.materials.map(m => (
+                          <li key={m}>• {m}</li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
-
-                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Tested Standards</span>
-                      <div className="flex flex-wrap gap-1.5">
+                    <div>
+                      <span className="font-bold text-slate-900 block mb-1">Certifications:</span>
+                      <ul className="space-y-1 text-slate-600 font-light">
                         {selectedMattressDetail.certifications.map(c => (
-                          <span key={c} className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800">
-                            ✓ {c}
-                          </span>
+                          <li key={c}>✓ {c}</li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
                   </div>
-
-                  <button
-                    onClick={() => setSelectedMattressDetail(null)}
-                    className="w-full py-3 rounded-xl bg-brand-950 text-white font-bold text-xs hover:bg-brand-900 transition-all cursor-pointer"
-                  >
-                    Back to Catalogue
-                  </button>
                 </div>
               </motion.div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+
+          {/* IMAGE PREVIEW MODAL */}
+          {imagePreview && (
+            <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+              <div className="relative max-w-4xl w-full bg-slate-900 rounded-3xl p-4 space-y-3 shadow-2xl border border-slate-800">
+                <div className="flex justify-between items-center text-white px-2">
+                  <span className="text-sm font-bold">{imagePreview.title}</span>
+                  <button
+                    onClick={() => setImagePreview(null)}
+                    className="p-1.5 rounded-full hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="rounded-2xl overflow-hidden max-h-[75vh] flex items-center justify-center bg-black">
+                  <img src={imagePreview.src} alt={imagePreview.title} className="max-w-full max-h-[75vh] object-contain" />
+                </div>
+              </div>
+            </div>
+          )}
+
+        </motion.div>
       </div>
     </AnimatePresence>
   );
