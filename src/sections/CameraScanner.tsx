@@ -240,7 +240,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 }
               }
 
-              // Stability verification
+              // Stability verification & Posture Lock check
               if (score >= 80) {
                 stabilityCounterRef.current = Math.min(30, stabilityCounterRef.current + 1);
               } else {
@@ -833,8 +833,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                         </div>
 
                         {isReadyToCapture && (
-                          <div className="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black tracking-wider uppercase shadow-lg shadow-emerald-500/30 flex items-center gap-1 animate-bounce">
-                            <CheckCircle className="w-3.5 h-3.5" /> Ready to Shoot
+                          <div className="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black tracking-wider uppercase shadow-lg shadow-emerald-500/30 flex items-center gap-1.5 animate-bounce">
+                            <CheckCircle className="w-3.5 h-3.5" /> 
+                            <span>Ready to Shoot</span>
                           </div>
                         )}
                       </div>
@@ -844,7 +845,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                         <div className="absolute bottom-4 inset-x-4 pointer-events-none flex justify-center">
                           <div className="px-4 py-2 rounded-2xl bg-emerald-950/90 border border-emerald-400/80 text-white text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-fade-in">
                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                            <span className="text-emerald-200">Optimal Alignment Locked — You can now take the photo!</span>
+                            <span className="text-emerald-200">
+                              Optimal Alignment Locked — You can now take the photo!
+                            </span>
                           </div>
                         </div>
                       )}

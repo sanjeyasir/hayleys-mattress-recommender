@@ -26,6 +26,8 @@ export interface Mattress {
   layers: string[]; // Step-by-step layer composition from catalogue
   certifications: string[]; // e.g. ['ISO 9001:2015', 'ISO 14001:2015', 'ISPA', 'OEKO-TEX']
   whyMatchExplain: string; // Biomechanical posture rationale
+  bestFor?: string; // Clear 1-sentence target user fit
+  tradeOffNote?: string; // Honest ergonomic trade-off note (e.g. softer feel vs firm ortho)
 }
 
 export interface PressureZone {
@@ -57,6 +59,7 @@ export interface BodyProfile {
   pressureZones: PressureZone[];
   calculatedFirmnessScore: number; // 1-10 recommended firmness
   primarySupportNeed: string; // 'Lumbosacral alignment', 'Shoulder pressure relief', 'Contoured lumbar support', etc.
+  rawLandmarks?: Array<{ x: number; y: number; z?: number }>; // Normalized 2D/3D MediaPipe landmark coordinates
 }
 
 export interface UserPreferences {

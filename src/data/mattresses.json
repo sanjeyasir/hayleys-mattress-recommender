@@ -9,9 +9,9 @@
     "description": "Consists of a Pocketed Spring base with a 3” Euro Top with layers of Comfort Foam and Natural Latex Foam finished with Quilted Cashmere / Medicott Fabric. The perforated top Natural Latex Layer induces air flow keeping the surface ventilated with medium-firm support.",
     "firmness": 7,
     "supportLevel": "Medium-Firm",
-    "coolingRating": 5,
-    "pressureReliefRating": 5,
-    "motionIsolationRating": 5,
+    "coolingRating": 4.8,
+    "pressureReliefRating": 4.7,
+    "motionIsolationRating": 4.9,
     "keyTechnologies": ["3” Euro Top", "Pocketed Spring Unit", "Perforated Natural Latex", "Rubberised Coir Insulation", "Quilted Cashmere/Medicott Fabric"],
     "idealPositions": ["Back Sleeper", "Side Sleeper", "Combination Sleeper"],
     "bodyTypeSuitability": ["Mesomorph", "Endomorph", "Ectomorph"],
@@ -35,7 +35,9 @@
       "9. Anti-Slip Heavy Duty Base Fabric"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "The Pristine Euro Top balances zero-partner-disturbance pocket springs with a buoyant 3” Euro top containing natural latex and rubberised coir. It cradles thoracic pressure while preventing lower spine sagging."
+    "whyMatchExplain": "The Pristine Euro Top balances zero-partner-disturbance pocket springs with a buoyant 3” Euro top containing natural latex and rubberised coir. It cradles thoracic pressure while preventing lower spine sagging.",
+    "bestFor": "Side and back sleepers wanting plush contouring with zero partner motion transfer.",
+    "tradeOffNote": "Premium 12-inch profile requires deep-pocket bedsheets."
   },
   {
     "id": "heavenly",
@@ -47,9 +49,9 @@
     "description": "An ultimately luxurious Spring Mattress which fully relaxes your body. Consisting of a Pocketed Spring Unit topped with multiple layers of Comfort Foam, Perforated Latex and contour-adjusting Memory Foam wrapped in premium Jacquard fabric.",
     "firmness": 4,
     "supportLevel": "Plush/Super Soft",
-    "coolingRating": 4,
-    "pressureReliefRating": 5,
-    "motionIsolationRating": 5,
+    "coolingRating": 3.8,
+    "pressureReliefRating": 4.9,
+    "motionIsolationRating": 4.9,
     "keyTechnologies": ["Body-Contouring Memory Foam", "Perforated Natural Latex", "Pocketed Spring Unit", "Quilted Jacquard Fabric", "Rubberised Coir Insulation"],
     "idealPositions": ["Side Sleeper", "Combination Sleeper"],
     "bodyTypeSuitability": ["Ectomorph", "Mesomorph"],
@@ -73,7 +75,9 @@
       "9. Anti-Slip Fabric"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "Designed for sleepers requiring deep pressure relief at the shoulder blades and pelvic joints. The memory foam adjusts to body contours while perforated latex prevents heat buildup."
+    "whyMatchExplain": "Designed for sleepers requiring deep pressure relief at the shoulder blades and pelvic joints. The memory foam adjusts to body contours while perforated latex prevents heat buildup.",
+    "bestFor": "Side sleepers and individuals with sensitive pressure points at hips and shoulders.",
+    "tradeOffNote": "Plush contour hug; stomach sleepers requiring rigid resistance may prefer Coir."
   },
   {
     "id": "supreme-bliss",
@@ -85,9 +89,9 @@
     "description": "A supreme mattress of uncompromising quality featuring Pocketed Spring technology with a top layer of Natural Latex Foam. The perforated latex absorbs body heat and induces air circulation, elegantly finished with quilted bamboo fabric.",
     "firmness": 6,
     "supportLevel": "Medium-Firm",
-    "coolingRating": 5,
-    "pressureReliefRating": 4,
-    "motionIsolationRating": 5,
+    "coolingRating": 4.7,
+    "pressureReliefRating": 4.3,
+    "motionIsolationRating": 4.8,
     "keyTechnologies": ["Natural Latex Foam Layer", "Pocket Spring Unit", "Quilted Bamboo Fabric", "Rubberised Coir Insulation", "Heat Absorption Tech"],
     "idealPositions": ["Back Sleeper", "Side Sleeper", "Stomach Sleeper"],
     "bodyTypeSuitability": ["Mesomorph", "Endomorph", "Ectomorph"],
@@ -109,7 +113,9 @@
       "7. Anti-Slip Fabric"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "Combines organic bamboo thermoregulation with responsive natural latex bounce and zero-disturbance pocket springs, delivering balanced orthopedic ergonomics for mixed postures."
+    "whyMatchExplain": "Combines organic bamboo thermoregulation with responsive natural latex bounce and zero-disturbance pocket springs, delivering balanced orthopedic ergonomics for mixed postures.",
+    "bestFor": "Mixed position sleepers seeking responsive bounce with organic temperature control.",
+    "tradeOffNote": "Offers active spring resilience rather than slow-sinking memory foam."
   },
   {
     "id": "blossom",
@@ -119,11 +125,11 @@
     "warranty": "10 Years Warranty",
     "image": "blossom",
     "description": "For a quality Spring Mattress at an affordable price. Built with a heavy-duty Bonnell Spring unit sandwiched between 2 layers of Comfort Foam and Rubberised Coir, aiding in maintaining posture by evenly distributing body weight.",
-    "firmness": 5,
+    "firmness": 5.5,
     "supportLevel": "Medium-Soft",
-    "coolingRating": 4,
-    "pressureReliefRating": 4,
-    "motionIsolationRating": 3,
+    "coolingRating": 4.2,
+    "pressureReliefRating": 3.9,
+    "motionIsolationRating": 3.2,
     "keyTechnologies": ["Bonnell Spring Unit", "Even Weight Distribution", "Rubberised Coir Insulation", "Quilted Woven Fabric", "Dual Comfort Foam"],
     "idealPositions": ["Back Sleeper", "Combination Sleeper"],
     "bodyTypeSuitability": ["Mesomorph", "Ectomorph"],
@@ -144,7 +150,9 @@
       "7. Anti-Slip Fabric"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "The Bonnell Spring network acts as an active resilient trampoline that distributes body mass evenly across the entire surface while coir pads prevent spring indentation."
+    "whyMatchExplain": "The Bonnell Spring network acts as an active resilient trampoline that distributes body mass evenly across the entire surface while coir pads prevent spring indentation.",
+    "bestFor": "Solo sleepers and guest rooms seeking dependable whole-body spring push-back.",
+    "tradeOffNote": "Interconnected coils transfer minor kinetic movement between bed partners."
   },
   {
     "id": "royal-classic",
@@ -154,11 +162,11 @@
     "warranty": "5 Years Warranty",
     "image": "royal_classic",
     "description": "A Rubberised Coir mattress with the feel and comfort of a Spring Mattress. Consists of a Comfort Foam layer sandwiched between 2 firm, springy blocks of Rubberised Coir topped with perforated Natural Latex Foam and Quilted Knitted Fabric.",
-    "firmness": 7,
+    "firmness": 7.5,
     "supportLevel": "Medium-Firm",
-    "coolingRating": 5,
-    "pressureReliefRating": 4,
-    "motionIsolationRating": 4,
+    "coolingRating": 4.9,
+    "pressureReliefRating": 3.8,
+    "motionIsolationRating": 3.8,
     "keyTechnologies": ["Dual Rubberised Coir Blocks", "Natural Latex Foam Top", "Sandwiched Comfort Foam Core", "100% Eco-Friendly Coir", "Superior Air Circulation"],
     "idealPositions": ["Back Sleeper", "Side Sleeper", "Stomach Sleeper"],
     "bodyTypeSuitability": ["Mesomorph", "Endomorph"],
@@ -178,7 +186,9 @@
       "6. Anti-Slip Fabric"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "The sandwiched coir-and-foam engineering replicates spring bounce using 100% eco-friendly natural coir and latex, providing dynamic spine push-back with zero chemical off-gassing."
+    "whyMatchExplain": "The sandwiched coir-and-foam engineering replicates spring bounce using 100% eco-friendly natural coir and latex, providing dynamic spine push-back with zero chemical off-gassing.",
+    "bestFor": "Eco-conscious back sleepers wanting firm spine alignment with breathable airflow.",
+    "tradeOffNote": "Firmer natural feel; side sleepers needing deep shoulder sinking should choose Latex/Spring."
   },
   {
     "id": "orthopaedic",
@@ -190,9 +200,9 @@
     "description": "Manufactured with a high-density Rubberised Coir block, providing an extra firm surface engineered for lumbar and neck support. Finished with 100% Raw Cotton Fabric for maximum breathability to provide natural relief from back and neck aches.",
     "firmness": 9.5,
     "supportLevel": "Extra Firm",
-    "coolingRating": 5,
-    "pressureReliefRating": 3,
-    "motionIsolationRating": 4,
+    "coolingRating": 5.0,
+    "pressureReliefRating": 2.8,
+    "motionIsolationRating": 3.6,
     "keyTechnologies": ["High-Density Rubberised Coir Block", "100% Raw Cotton Fabric", "Lumbar & Neck Ortho Correction", "Eco-Friendly Natural Fibers"],
     "idealPositions": ["Back Sleeper", "Stomach Sleeper"],
     "bodyTypeSuitability": ["Endomorph", "Mesomorph"],
@@ -207,7 +217,9 @@
       "3. Anti-Slip Heavy Duty Fabric"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "Your posture highlights spine deviation or lumbar sinkage. The high-density coir block keeps the spine strictly straight on the horizontal axis, eliminating sacral curvature strain during sleep."
+    "whyMatchExplain": "Your posture highlights spine deviation or lumbar sinkage. The high-density coir block keeps the spine strictly straight on the horizontal axis, eliminating sacral curvature strain during sleep.",
+    "bestFor": "Individuals with lower back pain or lumbar instability requiring strict planar spine support.",
+    "tradeOffNote": "Clinical extra-firm rigidity with minimal plush give; not suited for soft mattress preferences."
   },
   {
     "id": "orthopaedic-classic",
@@ -219,9 +231,9 @@
     "description": "A firm sleeping surface with added surface comfort. This all-natural high density Rubberised Coir mattress is topped with a layer of Perforated Natural Latex Foam and encased in 100% Raw Cotton fabric to ease back and neck aches.",
     "firmness": 8.5,
     "supportLevel": "Firm",
-    "coolingRating": 5,
-    "pressureReliefRating": 4,
-    "motionIsolationRating": 4,
+    "coolingRating": 4.8,
+    "pressureReliefRating": 3.4,
+    "motionIsolationRating": 3.7,
     "keyTechnologies": ["High-Density Rubberised Coir", "Perforated Natural Latex Foam", "100% Raw Cotton Cover", "Orthopaedic Spine Aligner"],
     "idealPositions": ["Back Sleeper", "Stomach Sleeper", "Side Sleeper"],
     "bodyTypeSuitability": ["Endomorph", "Mesomorph", "Ectomorph"],
@@ -238,7 +250,9 @@
       "4. Anti-Slip Fabric"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "Blends therapeutic rigid coir support with a gentle top layer of natural latex. Keeps the spine in pristine anatomical alignment while softening pressure against the ribcage and pelvic bones."
+    "whyMatchExplain": "Blends therapeutic rigid coir support with a gentle top layer of natural latex. Keeps the spine in pristine anatomical alignment while softening pressure against the ribcage and pelvic bones.",
+    "bestFor": "Back and stomach sleepers needing firm orthopedic posture correction with gentle surface relief.",
+    "tradeOffNote": "Firm supportive base; prioritize spinal straightness over deep contour sink."
   },
   {
     "id": "comfy-gel",
@@ -250,9 +264,9 @@
     "description": "Incorporating revolutionary gel infusion technology with a firm base comprising high-density foams and a Visco Elastic foam layer that adjusts to body contours. Infused gel particles absorb heat for cool, uninterrupted sleep.",
     "firmness": 4.5,
     "supportLevel": "Medium-Soft",
-    "coolingRating": 5,
-    "pressureReliefRating": 5,
-    "motionIsolationRating": 5,
+    "coolingRating": 4.6,
+    "pressureReliefRating": 4.8,
+    "motionIsolationRating": 4.8,
     "keyTechnologies": ["Gel Infused Visco Elastic Foam", "High Density Support Foam", "Rebonded Foam Base", "Cooling Quilted Jacquard Fabric"],
     "idealPositions": ["Side Sleeper", "Back Sleeper", "Combination Sleeper"],
     "bodyTypeSuitability": ["Ectomorph", "Mesomorph"],
@@ -269,7 +283,9 @@
       "4. Rebonded Base Foam Layer"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "The microscopic gel beads actively absorb body heat while the visco-elastic foam eliminates pressure spikes on the shoulders and trochanter, ideal for warm climates and side sleepers."
+    "whyMatchExplain": "The microscopic gel beads actively absorb body heat while the visco-elastic foam eliminates pressure spikes on the shoulders and trochanter, ideal for warm climates and side sleepers.",
+    "bestFor": "Side sleepers and hot sleepers needing joint pressure contouring with heat-dissipating gel.",
+    "tradeOffNote": "Conforming memory foam feel; users preferring high spring bounce may prefer Supreme Bliss."
   },
   {
     "id": "zee",
@@ -281,9 +297,9 @@
     "description": "Uniquely designed with an extra thick comfort foam layer supported by an extra thick re-bonded foam base. The quilted fabric with extra padding maximizes durability, comfort, and posture support.",
     "firmness": 6.5,
     "supportLevel": "Medium-Firm",
-    "coolingRating": 4,
-    "pressureReliefRating": 4,
-    "motionIsolationRating": 4,
+    "coolingRating": 4.0,
+    "pressureReliefRating": 4.0,
+    "motionIsolationRating": 4.1,
     "keyTechnologies": ["Extra Thick Comfort Foam", "Extra Thick Re-Bonded Foam Base", "Woven Quilted Fabric", "Durable Posture Core"],
     "idealPositions": ["Back Sleeper", "Stomach Sleeper", "Side Sleeper"],
     "bodyTypeSuitability": ["Mesomorph", "Endomorph"],
@@ -300,7 +316,9 @@
       "4. Quilted Fabric Base"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "High-density rebonded foam foundation provides non-sagging structural rigidity, while the top comfort foam padding shields the musculoskeletal frame against firm pressure points."
+    "whyMatchExplain": "High-density rebonded foam foundation provides non-sagging structural rigidity, while the top comfort foam padding shields the musculoskeletal frame against firm pressure points.",
+    "bestFor": "Daily durable support for medium to heavy weight frames needing sag-free stability.",
+    "tradeOffNote": "Denser core construction; offers solid stability with medium cushioning depth."
   },
   {
     "id": "plus-max",
@@ -312,9 +330,9 @@
     "description": "Triple Layer Mattress consisting of an engineered Convoluted Foam Layer, a Comfort Foam Layer supported by a Rebonded Foam Layer. Convoluted foam minimizes excessive sweating by maximizing temperature control and continuous airflow.",
     "firmness": 5.5,
     "supportLevel": "Medium",
-    "coolingRating": 5,
-    "pressureReliefRating": 4,
-    "motionIsolationRating": 4,
+    "coolingRating": 4.7,
+    "pressureReliefRating": 4.2,
+    "motionIsolationRating": 4.0,
     "keyTechnologies": ["Convoluted Airflow Foam", "Active Temperature Regulation", "Rebonded Base Foam", "Treated Woven Fabric"],
     "idealPositions": ["Back Sleeper", "Side Sleeper", "Combination Sleeper"],
     "bodyTypeSuitability": ["Ectomorph", "Mesomorph"],
@@ -331,6 +349,8 @@
       "4. Rebonded Foam Layer Base"
     ],
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISPA", "OEKO-TEX Certified"],
-    "whyMatchExplain": "The sculpted peak-and-valley convoluted foam channels trapped body heat away from the skin surface while providing distributed point-elastic support."
+    "whyMatchExplain": "The sculpted peak-and-valley convoluted foam channels trapped body heat away from the skin surface while providing distributed point-elastic support.",
+    "bestFor": "Warm sleepers and lighter frames desiring continuous convective ventilation channels.",
+    "tradeOffNote": "5-inch compact thickness; heavyweight sleepers may prefer 8+ inch mattresses."
   }
 ]

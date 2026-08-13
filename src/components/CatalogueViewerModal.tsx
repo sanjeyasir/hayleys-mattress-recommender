@@ -97,7 +97,7 @@ export const CatalogueViewerModal: React.FC<CatalogueViewerModalProps> = ({
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-300 font-light">
-                  Sleep Happily Ever After • Canadian Springwall Licensed • ISO 9001 & 14001 Certified
+                  Good Sleep, Healthy Life • Canadian Springwall Licensed • ISO 9001 & 14001 Certified
                 </p>
               </div>
             </div>

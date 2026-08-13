@@ -4,6 +4,7 @@ import type { BodyProfile, RecommendationResult, Mattress } from '../types';
 import Button from '../components/Button';
 import PrescriptionReportModal from '../components/PrescriptionReportModal';
 import Interactive3DPostureViewer from '../components/Interactive3DPostureViewer';
+import DerivationDetailModal from '../components/DerivationDetailModal';
 import { getMattressAsset } from '../data/mattressAssets';
 import { 
   Sparkles, 
@@ -12,10 +13,13 @@ import {
   Minus, 
   X, 
   RefreshCw, 
-  FileText, 
+  FileText,
   Download, 
   Eye, 
-  Maximize2 
+  Maximize2,
+  Calculator,
+  CheckCircle2,
+  Info
 } from 'lucide-react';
 
 interface RecommendationsProps {
@@ -39,6 +43,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
   onOpenCatalogue
 }) => {
   const [selectedMattress, setSelectedMattress] = useState<Mattress | null>(null);
+  const [selectedDerivation, setSelectedDerivation] = useState<RecommendationResult | null>(null);
   const [geometryViewMode, setGeometryViewMode] = useState<'2d' | '3d'>('3d');
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   const [activeImageView, setActiveImageView] = useState<Record<string, 'photo' | 'crossSection'>>({});
@@ -193,9 +198,9 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
               </div>
             </div>
 
-            <div className="rounded-2xl overflow-hidden bg-slate-900/90 border border-slate-800 aspect-[4/3] flex items-center justify-center relative">
+            <div className="rounded-2xl overflow-hidden bg-slate-900/90 border border-slate-800 min-h-[350px] sm:min-h-[380px] h-[380px] flex items-center justify-center relative">
               {geometryViewMode === '3d' ? (
-                <Interactive3DPostureViewer bodyProfile={bodyProfile} />
+                <Interactive3DPostureViewer bodyProfile={bodyProfile} className="w-full h-full" />
               ) : debugCanvasUrl ? (
                 <img src={debugCanvasUrl} alt="2D Optical Scan" className="w-full h-full object-cover" />
               ) : (
@@ -205,8 +210,8 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
               )}
             </div>
 
-            <div className="text-[10px] text-slate-400 text-center font-light">
-              Interactive biometric spine alignment simulation
+            <div className="text-[10px] text-slate-400 text-center font-light flex items-center justify-center gap-1.5">
+              <span>Drag to rotate 360° • Zoom • View anatomical spine & pressure map</span>
             </div>
           </div>
 
@@ -285,41 +290,95 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
                 </div>
 
                 {/* Right Match Description & Actions */}
-                <div className="lg:col-span-7 space-y-5">
+                <div className="lg:col-span-7 space-y-4">
                   <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[11px] font-bold text-[#194983] uppercase tracking-wider">
+                        {mattress.category} Series • {mattress.supportLevel}
+                      </span>
+                    </div>
                     <h3 className="text-2xl sm:text-3xl font-black text-slate-950">
                       {mattress.name}
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-600 font-light leading-relaxed mt-2">
+                    <p className="text-xs sm:text-sm text-slate-600 font-light leading-relaxed mt-1.5">
                       {mattress.description}
                     </p>
                   </div>
 
+                  {/* 3 Core Calibrated Rating Bars (Believable Ergonomic Spec Profile) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-500 font-medium">Firmness</span>
+                        <strong className="text-slate-800 font-bold">{mattress.firmness} / 10</strong>
+                      </div>
+                      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div className="h-full bg-[#194983] rounded-full" style={{ width: `${(mattress.firmness / 10) * 100}%` }} />
+                      </div>
+                      <span className="text-[9px] text-slate-400 block truncate">{mattress.supportLevel}</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-500 font-medium">Airflow & Cooling</span>
+                        <strong className="text-slate-800 font-bold">{mattress.coolingRating} / 5</strong>
+                      </div>
+                      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div className="h-full bg-sky-500 rounded-full" style={{ width: `${(mattress.coolingRating / 5) * 100}%` }} />
+                      </div>
+                      <span className="text-[9px] text-slate-400 block truncate">Thermal Convection</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-500 font-medium">Motion Isolation</span>
+                        <strong className="text-slate-800 font-bold">{mattress.motionIsolationRating} / 5</strong>
+                      </div>
+                      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(mattress.motionIsolationRating / 5) * 100}%` }} />
+                      </div>
+                      <span className="text-[9px] text-slate-400 block truncate">Zero Disturbance</span>
+                    </div>
+                  </div>
+
                   {/* Why Match Explanation Box */}
-                  <div className="p-4 rounded-2xl bg-[#f0f6fc] border border-[#b8d7f5] space-y-1">
+                  <div className="p-3.5 rounded-2xl bg-[#f0f6fc] border border-[#b8d7f5] space-y-1">
                     <h4 className="text-xs font-bold text-[#194983] flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 text-[#194983]" />
-                      Why This Is Your Optimal Match:
+                      Biomechanical Recommendation:
                     </h4>
                     <p className="text-xs text-slate-700 font-light leading-relaxed">
                       {primaryMatch.reasons?.[0] || mattress.whyMatchExplain}
                     </p>
                   </div>
 
-                  {/* Key Technologies Pills */}
-                  <div className="flex flex-wrap gap-2">
-                    {mattress.keyTechnologies.map((tech) => (
-                      <span key={tech} className="px-3 py-1 rounded-xl bg-slate-100 text-xs text-slate-700 font-medium border border-slate-200">
-                        ✓ {tech}
-                      </span>
-                    ))}
+                  {/* Honest Ergonomic Fit & Trade-off */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    {mattress.bestFor && (
+                      <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-900 flex items-start gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <div>
+                          <strong className="font-bold block text-[11px]">Ideal Match For:</strong>
+                          <span className="text-[11px] font-light leading-tight block">{mattress.bestFor}</span>
+                        </div>
+                      </div>
+                    )}
+                    {mattress.tradeOffNote && (
+                      <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 flex items-start gap-1.5">
+                        <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <strong className="font-bold block text-[11px]">Keep in Mind:</strong>
+                          <span className="text-[11px] font-light leading-tight block">{mattress.tradeOffNote}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <div className="flex flex-wrap items-center gap-2.5 pt-1">
                     <button
                       onClick={() => onAddToCompare(mattress)}
-                      className={`px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+                      className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
                         isCompared
                           ? 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
                           : 'bg-[#194983] text-white hover:bg-[#133867] shadow-md shadow-[#194983]/20'
@@ -330,19 +389,28 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
                     </button>
 
                     <button
-                      onClick={() => setSelectedMattress(mattress)}
-                      className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center gap-2 cursor-pointer"
+                      onClick={() => setSelectedDerivation(primaryMatch)}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#194983]/10 text-[#194983] font-bold text-xs border border-slate-200 transition-all flex items-center gap-2 cursor-pointer"
+                      title="See step-by-step mathematical score breakdown"
                     >
-                      <Eye className="w-4 h-4 text-[#194983]" />
-                      <span>View Layer Details</span>
+                      <Calculator className="w-4 h-4" />
+                      <span>Why this {primaryMatch.matchPercentage}% Score?</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedMattress(mattress)}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4 text-slate-500" />
+                      <span>View Layers</span>
                     </button>
 
                     {onOpenCatalogue && (
                       <button
                         onClick={onOpenCatalogue}
-                        className="px-4 py-2.5 rounded-xl bg-transparent hover:bg-slate-100 text-slate-600 font-medium text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
                       >
-                        <FileText className="w-4 h-4" />
+                        <FileText className="w-3.5 h-3.5 text-[#194983]" />
                         <span>Catalogue</span>
                       </button>
                     )}
@@ -360,12 +428,14 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
         {runnerUps.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-slate-900">
-                Alternative Hayleys Matches
-              </h3>
-              <span className="text-xs text-slate-500 font-light">
-                Close alternatives matching your profile
-              </span>
+              <div>
+                <h3 className="text-xl font-black text-slate-900">
+                  Alternative Hayleys Matches
+                </h3>
+                <span className="text-xs text-slate-500 font-light">
+                  Scientifically ranked alternatives matching your body profile
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -421,7 +491,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
                       <div className="p-5 space-y-3">
                         <div className="flex justify-between items-start">
                           <div>
-                            <span className="text-[10px] font-bold text-[#194983] uppercase">{mattress.category}</span>
+                            <span className="text-[10px] font-bold text-[#194983] uppercase">{mattress.category} • {mattress.supportLevel}</span>
                             <h4 className="text-base font-black text-slate-900">{mattress.name}</h4>
                           </div>
                           <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
@@ -429,37 +499,61 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
                           </span>
                         </div>
 
-                        <p className="text-xs text-slate-500 font-light leading-relaxed line-clamp-2">
-                          {mattress.description}
-                        </p>
-
-                        <div className="text-xs text-slate-600 font-medium">
-                          Thickness: <strong>{mattress.thickness}</strong> • Firmness: <strong>{mattress.firmness}/10</strong>
+                        {/* 3 Quick Spec Chips */}
+                        <div className="grid grid-cols-3 gap-1.5 text-center text-[10px] bg-slate-50 p-2 rounded-xl border border-slate-100">
+                          <div>
+                            <span className="text-slate-400 block font-medium">Firmness</span>
+                            <strong className="text-slate-800">{mattress.firmness}/10</strong>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block font-medium">Cooling</span>
+                            <strong className="text-slate-800">{mattress.coolingRating}/5</strong>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block font-medium">Motion</span>
+                            <strong className="text-slate-800">{mattress.motionIsolationRating}/5</strong>
+                          </div>
                         </div>
+
+                        {mattress.bestFor && (
+                          <p className="text-[11px] text-slate-600 font-light line-clamp-2">
+                            <strong className="text-slate-800 font-medium">Best for:</strong> {mattress.bestFor}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     {/* Bottom Actions */}
-                    <div className="p-5 pt-0 flex gap-2">
+                    <div className="p-5 pt-0 space-y-2">
                       <button
-                        onClick={() => onAddToCompare(mattress)}
-                        className={`flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                          isCompared
-                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                            : 'bg-slate-100 hover:bg-[#194983] text-slate-700 hover:text-white'
-                        }`}
+                        onClick={() => setSelectedDerivation(rec)}
+                        className="w-full py-1.5 rounded-lg bg-slate-50 hover:bg-[#194983]/10 text-[#194983] text-[11px] font-bold border border-slate-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        {isCompared ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                        <span>{isCompared ? 'Compared' : '+ Compare'}</span>
+                        <Calculator className="w-3.5 h-3.5" />
+                        <span>Why this {rec.matchPercentage}% score?</span>
                       </button>
 
-                      <button
-                        onClick={() => setSelectedMattress(mattress)}
-                        className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onAddToCompare(mattress)}
+                          className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            isCompared
+                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                              : 'bg-slate-100 hover:bg-[#194983] text-slate-700 hover:text-white'
+                          }`}
+                        >
+                          {isCompared ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                          <span>{isCompared ? 'Compared' : '+ Compare'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => setSelectedMattress(mattress)}
+                          className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
                   </div>
@@ -556,6 +650,13 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
           onClose={() => setIsReportModalOpen(false)}
           bodyProfile={bodyProfile}
           recommendations={recommendations}
+        />
+
+        {/* SCIENTIFIC DERIVATION CALCULATION MODAL */}
+        <DerivationDetailModal
+          recommendation={selectedDerivation}
+          bodyProfile={bodyProfile}
+          onClose={() => setSelectedDerivation(null)}
         />
 
       </div>

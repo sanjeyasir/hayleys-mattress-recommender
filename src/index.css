@@ -1,3 +1,35 @@
+@font-face {
+  font-family: 'Clearface Gothic';
+  src: url('/fonts/ClearfaceGothicLTStd-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Clearface Gothic';
+  src: url('/fonts/ClearfaceGothicLTStd-Roman.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Clearface Gothic';
+  src: url('/fonts/ClearfaceGothicLTStd-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Clearface Gothic';
+  src: url('/fonts/ClearfaceGothicLTStd-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import "tailwindcss";
 
 @theme {
@@ -13,6 +45,18 @@
   --color-brand-900: #0f294b;
   --color-brand-950: #081628;
 
+  --color-slate-50: var(--color-brand-50);
+  --color-slate-100: var(--color-brand-100);
+  --color-slate-200: var(--color-brand-200);
+  --color-slate-300: var(--color-brand-300);
+  --color-slate-400: var(--color-brand-400);
+  --color-slate-500: var(--color-brand-500);
+  --color-slate-600: var(--color-brand-600);
+  --color-slate-700: var(--color-brand-700);
+  --color-slate-800: var(--color-brand-800);
+  --color-slate-900: var(--color-brand-900);
+  --color-slate-950: var(--color-brand-950);
+
   --color-gold-50: #fdfbeb;
   --color-gold-100: #fbf7c7;
   --color-gold-200: #f7ee91;
@@ -25,7 +69,7 @@
   --color-gold-900: #643f14;
   --color-gold-950: #3a2107;
 
-  --font-sans: 'Inter', 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Clearface Gothic', 'Inter', 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   
   --animate-scan: scan-line 3s ease-in-out infinite;
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -44,7 +88,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    font-family: 'Clearface Gothic', 'Outfit', 'Inter', system-ui, sans-serif;
   }
 }
 

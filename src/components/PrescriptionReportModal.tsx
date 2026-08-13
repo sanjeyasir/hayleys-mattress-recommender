@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
   Download, 
-  BedDouble, 
   ShieldCheck, 
   Calendar,
   FileCheck
@@ -311,14 +310,14 @@ export const PrescriptionReportModal: React.FC<PrescriptionReportModalProps> = (
             {/* Branded Official Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-slate-950 pb-5">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-brand-950 text-gold-400 flex items-center justify-center font-bold shadow-md shrink-0">
-                  <BedDouble className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-slate-950 text-gold-400 flex items-center justify-center font-bold shadow-md shrink-0">
+                  <FileCheck className="w-6 h-6 text-gold-400" />
                 </div>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950 leading-none">
                     HAYLEYS MATTRESSES
                   </h1>
-                  <span className="text-[10px] font-bold text-brand-700 uppercase tracking-widest block mt-1">
+                  <span className="text-[10px] font-bold text-[#194983] uppercase tracking-widest block mt-1">
                     SLEEP HAPPILY EVER AFTER • CLINICAL SLEEPMATCH PRESCRIPTION
                   </span>
                 </div>

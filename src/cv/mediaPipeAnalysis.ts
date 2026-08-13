@@ -415,6 +415,7 @@ export const analyzeMediaPipePosture = (
     bodyType,
     pressureZones,
     calculatedFirmnessScore,
-    primarySupportNeed
+    primarySupportNeed,
+    rawLandmarks: safeLandmarks
   };
 };

@@ -31,28 +31,20 @@ export const Header: React.FC<HeaderProps> = ({
       <header className="fixed top-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
           
-          {/* Hayleys Mattresses Brand Logo */}
+          {/* LS&B Brand Logo */}
           <div 
             onClick={() => {
               if (onOpenSplash) onOpenSplash();
               else window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className="flex items-center gap-3 cursor-pointer group"
-            title="Hayleys Mattresses Recommender"
+            title="Living, Sleeping & Beyond (LS&B) - Hayleys Mattresses"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#194983] to-[#4A90E2] flex items-center justify-center text-white shadow-md shadow-[#194983]/20 group-hover:scale-105 transition-all shrink-0">
-              <BedDouble className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-950 leading-none">
-                  HAYLEYS <span className="text-[#194983] font-extrabold">MATTRESSES</span>
-                </h1>
-              </div>
-              <span className="text-[9px] sm:text-[10px] font-bold text-[#4A90E2] uppercase tracking-widest block mt-0.5">
-                SLEEP HAPPILY EVER AFTER
-              </span>
-            </div>
+            <img 
+              src="/L&S B.png" 
+              alt="LS&B - Living, Sleeping & Beyond" 
+              className="h-10 sm:h-12 md:h-14 w-auto max-w-[160px] sm:max-w-[200px] object-contain transition-transform duration-200 group-hover:scale-105"
+            />
           </div>
 
           {/* Desktop Navigation links */}

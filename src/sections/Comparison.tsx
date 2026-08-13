@@ -20,17 +20,17 @@ export const Comparison: React.FC<ComparisonProps> = ({
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
   const compareFeatures = [
-    { label: 'Mattress Category', key: 'category' },
-    { label: 'Thickness / Height', key: 'thickness' },
-    { label: 'Warranty Period', key: 'warranty' },
-    { label: 'Firmness Rating', key: 'firmness', suffix: ' / 10' },
-    { label: 'Support Grade', key: 'supportLevel' },
-    { label: 'Cooling Index', key: 'coolingRating', suffix: ' / 5' },
-    { label: 'Pressure Relief', key: 'pressureReliefRating', suffix: ' / 5' },
-    { label: 'Motion Isolation', key: 'motionIsolationRating', suffix: ' / 5' },
-    { label: 'Key Features', key: 'keyTechnologies', isArray: true },
-    { label: 'Ideal Sleeping Positions', key: 'idealPositions', isArray: true },
-    { label: 'Quality Certifications', key: 'certifications', isArray: true }
+    { label: 'Mattress Category', key: 'category', sub: 'Core Construction' },
+    { label: 'Thickness / Height', key: 'thickness', sub: 'Vertical Profile' },
+    { label: 'Warranty Period', key: 'warranty', sub: 'Manufacturer Guarantee' },
+    { label: 'Firmness Rating', key: 'firmness', suffix: ' / 10', sub: '1-10 ILD Ergonomic Scale' },
+    { label: 'Support Grade', key: 'supportLevel', sub: 'Spinal Resistance' },
+    { label: 'Cooling Index', key: 'coolingRating', suffix: ' / 5', sub: 'Convective Airflow' },
+    { label: 'Pressure Relief', key: 'pressureReliefRating', suffix: ' / 5', sub: 'Surface Contouring' },
+    { label: 'Motion Isolation', key: 'motionIsolationRating', suffix: ' / 5', sub: 'Kinetic Damping' },
+    { label: 'Key Features', key: 'keyTechnologies', isArray: true, sub: 'Engineered Layers' },
+    { label: 'Ideal Sleeping Positions', key: 'idealPositions', isArray: true, sub: 'Posture Compatibility' },
+    { label: 'Quality Certifications', key: 'certifications', isArray: true, sub: 'Global Standards' }
   ];
 
   return (
@@ -218,7 +218,10 @@ export const Comparison: React.FC<ComparisonProps> = ({
                     {compareFeatures.map((feat) => (
                       <tr key={feat.label} className="border-b border-slate-100 hover:bg-slate-50/70 transition-all">
                         <td className="p-3.5 sm:p-4 text-xs font-bold text-slate-800 bg-slate-50/50">
-                          {feat.label}
+                          <div>{feat.label}</div>
+                          {feat.sub && (
+                            <span className="text-[10px] font-normal text-slate-400 block mt-0.5">{feat.sub}</span>
+                          )}
                         </td>
                         {compareList.map((mattress) => {
                           const val = (mattress as any)[feat.key];

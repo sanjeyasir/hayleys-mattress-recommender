@@ -35,7 +35,7 @@ export const Hero: React.FC<HeroProps> = ({
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#194983]/10 border border-[#4A90E2]/30 text-[#194983] text-xs font-bold uppercase tracking-wider shadow-xs"
           >
             <Sparkles className="w-4 h-4 text-[#4A90E2]" />
-            HAYLEYS MATTRESSES • SLEEP HAPPILY EVER AFTER
+            HAYLEYS MATTRESSES • GOOD SLEEP, HEALTHY LIFE
           </motion.div>
 
           {/* Main Title */}

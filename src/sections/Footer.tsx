@@ -32,7 +32,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenCatalogue }) => {
                 HAYLEYS MATTRESSES
               </h4>
               <span className="text-[10px] font-bold text-[#4A90E2] uppercase tracking-widest block mt-1">
-                SLEEP HAPPILY EVER AFTER
+                GOOD SLEEP • HEALTHY LIFE
               </span>
             </div>
           </div>
