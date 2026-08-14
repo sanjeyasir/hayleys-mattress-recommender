@@ -53,7 +53,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = () => {
   ];
 
   return (
-    <section id="how-it-works" className="bg-slate-50 py-16 sm:py-20 border-y border-slate-200 scroll-mt-16">
+    <section id="how-it-works" className="bg-slate-50 py-16 sm:py-20 border-y border-slate-200 scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
         
         {/* Section Header */}

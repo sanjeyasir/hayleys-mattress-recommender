@@ -457,7 +457,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
   };
 
   return (
-    <section id="scanner" className="py-16 sm:py-24 bg-white scroll-mt-16">
+    <section id="scanner" className="py-16 sm:py-24 bg-white scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}

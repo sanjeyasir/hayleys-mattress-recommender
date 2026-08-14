@@ -28,51 +28,56 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl z-40 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl shadow-md">
+        <div className="px-4 sm:px-6 h-20 flex items-center justify-between gap-4 relative">
           
-          {/* LS&B Brand Logo */}
+          {/* Left side: Navigation links (desktop only) */}
+          <div className="flex-1 flex justify-start">
+            <nav className="hidden lg:flex items-center gap-7 text-xs font-bold tracking-wider text-slate-600 uppercase">
+              <a href="#how-it-works" className="hover:text-[#194983] transition-colors">How It Works</a>
+              <a href="#scanner" className="hover:text-[#194983] transition-colors">Find My Mattress</a>
+            </nav>
+          </div>
+
+          {/* Centered Logo closer to the top border */}
           <div 
             onClick={() => {
               if (onOpenSplash) onOpenSplash();
               else window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="flex items-center gap-3 cursor-pointer group"
+            className="absolute left-1/2 -translate-x-1/2 top-2 flex items-center justify-center cursor-pointer z-50 transition-transform duration-200 hover:scale-105"
             title="Living, Sleeping & Beyond (LS&B) - Hayleys Mattresses"
           >
             <img 
               src="/L&S B.png" 
               alt="LS&B - Living, Sleeping & Beyond" 
-              className="h-10 sm:h-12 md:h-14 w-auto max-w-[160px] sm:max-w-[200px] object-contain transition-transform duration-200 group-hover:scale-105"
+              className="h-10 sm:h-12 w-auto max-w-[140px] sm:max-w-[160px] object-contain"
             />
           </div>
 
-          {/* Desktop Navigation links */}
-          <nav className="hidden lg:flex items-center gap-7 text-xs font-bold tracking-wider text-slate-600 uppercase">
-            <a href="#how-it-works" className="hover:text-[#194983] transition-colors">How It Works</a>
-            <a href="#scanner" className="hover:text-[#194983] transition-colors">Find My Mattress</a>
-            <a href="#technology" className="hover:text-[#194983] transition-colors">Sleep Science</a>
-            <a href="#comparison" className="hover:text-[#194983] transition-colors flex items-center gap-1.5">
-              <span>Compare</span>
-              {compareCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-[#194983] text-white text-[10px] font-mono font-bold">
-                  {compareCount}
-                </span>
-              )}
-            </a>
-          </nav>
+          {/* Right side: Navigation & Action Calls */}
+          <div className="flex-1 flex justify-end items-center gap-2.5 sm:gap-3">
+            <nav className="hidden lg:flex items-center gap-7 text-xs font-bold tracking-wider text-slate-600 uppercase mr-4">
+              <a href="#technology" className="hover:text-[#194983] transition-colors">Sleep Science</a>
+              <a href="#comparison" className="hover:text-[#194983] transition-colors flex items-center gap-1.5">
+                <span>Compare</span>
+                {compareCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#194983] text-white text-[10px] font-mono font-bold">
+                    {compareCount}
+                  </span>
+                )}
+              </a>
+            </nav>
 
-          {/* Action Calls */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
             <button
               onClick={onOpenCatalogue}
-              className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+              className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-all cursor-pointer shrink-0"
             >
               <BookOpen className="w-4 h-4 text-[#194983]" />
               <span>Catalogue</span>
             </button>
 
-            <Button variant="primary" size="sm" onClick={onStartAssessment} className="shadow-md hidden xs:flex">
+            <Button variant="primary" size="sm" onClick={onStartAssessment} className="shadow-md hidden xs:flex shrink-0">
               Start Assessment
             </Button>
 
@@ -90,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Slide-Out Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 px-6 py-5 space-y-4 shadow-xl">
+          <div className="lg:hidden bg-white border-t border-slate-100 px-6 py-5 space-y-4 rounded-b-2xl shadow-xl">
             <div className="flex flex-col space-y-3 text-xs font-bold text-slate-800">
               <button
                 onClick={() => handleNavClick('how-it-works')}

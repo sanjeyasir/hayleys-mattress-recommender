@@ -33,79 +33,28 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#081628] via-[#0c2444] to-[#194983] text-slate-900 overflow-y-auto p-4 sm:p-6">
-      {/* Solid Brand Theme Background with Subtle Ambient Glow & Mattress Animations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Soft radial glow points */}
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#4A90E2]/15 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-[#194983]/30 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute inset-0 grid-overlay opacity-10" />
-
-        {/* Contouring Support Waves (representing mattress comfort layers) */}
-        <div className="absolute inset-x-0 bottom-0 h-48 overflow-hidden opacity-20">
-          <svg className="w-full h-full" viewBox="0 0 1440 200" preserveAspectRatio="none">
-            <motion.path
-              d="M0,100 C320,150 480,50 800,120 C1120,190 1280,80 1440,110 L1440,200 L0,200 Z"
-              fill="url(#wave-gradient-1)"
-              animate={{
-                d: [
-                  "M0,100 C320,150 480,50 800,120 C1120,190 1280,80 1440,110 L1440,200 L0,200 Z",
-                  "M0,120 C360,70 520,130 840,90 C1160,50 1240,140 1440,100 L1440,200 L0,200 Z",
-                  "M0,100 C320,150 480,50 800,120 C1120,190 1280,80 1440,110 L1440,200 L0,200 Z"
-                ]
-              }}
-              transition={{
-                duration: 12,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-            <motion.path
-              d="M0,130 C240,70 480,140 720,100 C960,60 1200,130 1440,95 L1440,200 L0,200 Z"
-              fill="url(#wave-gradient-2)"
-              animate={{
-                d: [
-                  "M0,130 C240,70 480,140 720,100 C960,60 1200,130 1440,95 L1440,200 L0,200 Z",
-                  "M0,95 C280,125 440,75 760,115 C1080,155 1200,85 1440,120 L1440,200 L0,200 Z",
-                  "M0,130 C240,70 480,140 720,100 C960,60 1200,130 1440,95 L1440,200 L0,200 Z"
-                ]
-              }}
-              transition={{
-                duration: 9,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-            <defs>
-              <linearGradient id="wave-gradient-1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#194983" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#4A90E2" stopOpacity="0.3" />
-              </linearGradient>
-              <linearGradient id="wave-gradient-2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#4A90E2" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="#194983" stopOpacity="0.2" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#4A90E2] text-slate-900 overflow-y-auto p-4 sm:p-6">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="relative z-10 w-full max-w-lg bg-white text-slate-900 rounded-3xl overflow-hidden shadow-2xl my-auto border border-slate-200 p-6 sm:p-8 space-y-6 shadow-black/40"
+        className="relative z-10 w-full max-w-lg bg-white text-slate-900 rounded-3xl my-auto border border-slate-200 p-6 pt-16 sm:p-8 sm:pt-20 space-y-6 shadow-2xl shadow-black/40"
       >
-        {/* Top Header with Full-Color LS&B Logo on the Top-Left */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <img 
-              src="/L&S B.png" 
-              alt="LS&B - Living, Sleeping & Beyond" 
-              className="h-10 sm:h-12 w-auto object-contain"
-            />
-          </div>
+        {/* Logo placed properly inside the card closer to the top border */}
+        <div 
+          onClick={onStartAssessment}
+          className="absolute top-4 left-1/2 -translate-x-1/2 cursor-pointer transition-transform hover:scale-105 z-20"
+          title="Living, Sleeping & Beyond (LS&B) - Hayleys Mattresses"
+        >
+          <img 
+            src="/L&S B.png" 
+            alt="LS&B - Living, Sleeping & Beyond" 
+            className="h-10 sm:h-12 w-auto object-contain max-w-[140px] sm:max-w-[165px]"
+          />
+        </div>
 
+        {/* Top Header with Sleep Recommender badge, centered */}
+        <div className="flex items-center justify-center pb-4 border-b border-slate-100 pt-2">
           <span className="px-3 py-1 rounded-full bg-brand-700/10 text-brand-700 text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-brand-400" />
             Sleep Recommender

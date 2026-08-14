@@ -34,7 +34,7 @@ export const Comparison: React.FC<ComparisonProps> = ({
   ];
 
   return (
-    <section id="comparison" className="bg-white py-16 sm:py-24 border-b border-slate-200 scroll-mt-20">
+    <section id="comparison" className="bg-white py-16 sm:py-24 border-b border-slate-200 scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}

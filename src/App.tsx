@@ -165,7 +165,7 @@ function App() {
         <HowItWorks onOpenExplainer={() => setIsExplainerOpen(true)} />
 
         {/* 3. Interactive Arena (Scanner / Loading / Results) */}
-        <div id="scanner" className="scroll-mt-20">
+        <div id="scanner" className="scroll-mt-28">
           {flowState === 'idle' && (
             <CameraScanner onCaptureCompleted={handleCaptureCompleted} />
           )}
