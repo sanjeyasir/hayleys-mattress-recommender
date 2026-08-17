@@ -691,19 +691,19 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
             <div className="absolute top-0 left-0 w-full h-full grid-overlay opacity-[0.04] pointer-events-none" />
 
             {/* Header info bar */}
-            <div className="flex justify-between items-center z-10 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between z-10 gap-2.5 pb-2.5 sm:pb-0 border-b border-slate-850 sm:border-none w-full">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
-                <span className="text-[11px] sm:text-xs font-bold tracking-wider uppercase text-slate-300 truncate">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase text-slate-300">
                   {useSimulator ? 'Digital Biometric Simulator' : 'Live Optical Spine Scanner'}
                 </span>
               </div>
 
               {/* Mode Toggles */}
-              <div className="flex gap-1 sm:gap-2 bg-slate-900 p-1 rounded-full border border-slate-800 shrink-0">
+              <div className="flex gap-1 bg-slate-900 p-0.5 rounded-full border border-slate-800 self-start sm:self-auto shrink-0">
                 <button
                   onClick={() => handleToggleSource(false)}
-                  className={`px-3 py-1 text-[10px] font-bold tracking-wider rounded-full transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-[9px] sm:text-[10px] font-bold tracking-wider rounded-full transition-all cursor-pointer ${
                     useSimulator ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -711,7 +711,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
                 </button>
                 <button
                   onClick={() => handleToggleSource(true)}
-                  className={`px-3 py-1 text-[10px] font-bold tracking-wider rounded-full transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-[9px] sm:text-[10px] font-bold tracking-wider rounded-full transition-all cursor-pointer ${
                     !useSimulator ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -895,7 +895,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onCaptureCompleted
 
               {/* Device selectors & Capture Button */}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-start">
                   <button
                     onClick={() => setActiveStep('preferences')}
                     className="lg:hidden px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-full text-slate-300 text-xs font-semibold flex items-center gap-1.5"

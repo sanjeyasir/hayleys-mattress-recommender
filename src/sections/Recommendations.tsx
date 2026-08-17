@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import type { BodyProfile, RecommendationResult, Mattress } from '../types';
 import Button from '../components/Button';
 import PrescriptionReportModal from '../components/PrescriptionReportModal';
-import Interactive3DPostureViewer from '../components/Interactive3DPostureViewer';
 import DerivationDetailModal from '../components/DerivationDetailModal';
 import { getMattressAsset } from '../data/mattressAssets';
 import { 
@@ -44,7 +43,6 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
 }) => {
   const [selectedMattress, setSelectedMattress] = useState<Mattress | null>(null);
   const [selectedDerivation, setSelectedDerivation] = useState<RecommendationResult | null>(null);
-  const [geometryViewMode, setGeometryViewMode] = useState<'2d' | '3d'>('3d');
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   const [activeImageView, setActiveImageView] = useState<Record<string, 'photo' | 'crossSection'>>({});
   const [zoomImage, setZoomImage] = useState<{ title: string; src: string } | null>(null);
@@ -172,36 +170,16 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
             )}
           </div>
 
-          {/* Right Visual Posture Viewer (2D / 3D Toggle) */}
+          {/* Right Visual Posture Viewer (2D Optical Scan Only) */}
           <div className="lg:col-span-5 bg-slate-950 text-white rounded-3xl p-5 border border-slate-800 space-y-4 shadow-xl">
             <div className="flex justify-between items-center">
               <span className="text-[11px] font-bold text-[#4A90E2] uppercase tracking-wider">
                 Posture Model
               </span>
-              <div className="flex bg-slate-900 p-0.5 rounded-xl border border-slate-800 text-[10px]">
-                <button
-                  onClick={() => setGeometryViewMode('3d')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                    geometryViewMode === '3d' ? 'bg-[#4A90E2] text-white shadow-xs' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  3D Spine
-                </button>
-                <button
-                  onClick={() => setGeometryViewMode('2d')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                    geometryViewMode === '2d' ? 'bg-[#4A90E2] text-white shadow-xs' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  2D Scan
-                </button>
-              </div>
             </div>
 
             <div className="rounded-2xl overflow-hidden bg-slate-900/90 border border-slate-800 min-h-[350px] sm:min-h-[380px] h-[380px] flex items-center justify-center relative">
-              {geometryViewMode === '3d' ? (
-                <Interactive3DPostureViewer bodyProfile={bodyProfile} className="w-full h-full" />
-              ) : debugCanvasUrl ? (
+              {debugCanvasUrl ? (
                 <img src={debugCanvasUrl} alt="2D Optical Scan" className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center p-4 text-xs text-slate-400 font-light">
@@ -211,7 +189,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
             </div>
 
             <div className="text-[10px] text-slate-400 text-center font-light flex items-center justify-center gap-1.5">
-              <span>Drag to rotate 360° • Zoom • View anatomical spine & pressure map</span>
+              <span>Calibrated 2D optical scan and posture load-point analysis</span>
             </div>
           </div>
 

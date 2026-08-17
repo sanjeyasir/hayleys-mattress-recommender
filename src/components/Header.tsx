@@ -31,27 +31,43 @@ export const Header: React.FC<HeaderProps> = ({
       <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl z-40 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl shadow-md">
         <div className="px-4 sm:px-6 h-20 flex items-center justify-between gap-4 relative">
           
-          {/* Left side: Navigation links (desktop only) */}
-          <div className="flex-1 flex justify-start">
+          {/* Left side: Navigation links (desktop only) & Logo (mobile only) */}
+          <div className="flex-1 flex justify-start items-center gap-4">
+            {/* Mobile/Tablet Logo left-aligned */}
+            <div 
+              onClick={() => {
+                if (onOpenSplash) onOpenSplash();
+                else window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="lg:hidden flex items-center cursor-pointer transition-transform duration-200 hover:scale-105 animate-fade-in"
+              title="Living, Sleeping & Beyond (LS&B) - Hayleys Mattresses"
+            >
+              <img 
+                src="/L&S B.png" 
+                alt="LS&B - Living, Sleeping & Beyond" 
+                className="h-10 sm:h-12 w-auto max-w-[130px] sm:max-w-[160px] object-contain"
+              />
+            </div>
+
             <nav className="hidden lg:flex items-center gap-7 text-xs font-bold tracking-wider text-slate-600 uppercase">
               <a href="#how-it-works" className="hover:text-[#194983] transition-colors">How It Works</a>
               <a href="#scanner" className="hover:text-[#194983] transition-colors">Find My Mattress</a>
             </nav>
           </div>
 
-          {/* Centered Logo closer to the top border */}
+          {/* Centered Logo closer to the top border (desktop only) */}
           <div 
             onClick={() => {
               if (onOpenSplash) onOpenSplash();
               else window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="absolute left-1/2 -translate-x-1/2 top-2 flex items-center justify-center cursor-pointer z-50 transition-transform duration-200 hover:scale-105"
+            className="hidden lg:flex absolute left-1/2 -translate-x-1/2 top-2 items-center justify-center cursor-pointer z-50 transition-transform duration-200 hover:scale-105"
             title="Living, Sleeping & Beyond (LS&B) - Hayleys Mattresses"
           >
             <img 
               src="/L&S B.png" 
               alt="LS&B - Living, Sleeping & Beyond" 
-              className="h-10 sm:h-12 w-auto max-w-[140px] sm:max-w-[160px] object-contain"
+              className="h-14 w-auto max-w-[180px] object-contain"
             />
           </div>
 
@@ -77,8 +93,14 @@ export const Header: React.FC<HeaderProps> = ({
               <span>Catalogue</span>
             </button>
 
-            <Button variant="primary" size="sm" onClick={onStartAssessment} className="shadow-md hidden xs:flex shrink-0">
-              Start Assessment
+            <Button 
+              variant="primary" 
+              size="sm" 
+              onClick={onStartAssessment} 
+              className="shadow-md flex shrink-0 px-3 py-1.5 text-[10px] sm:px-4 sm:py-2 sm:text-xs"
+            >
+              <span className="hidden sm:inline">Start Assessment</span>
+              <span className="sm:hidden">Start Scan</span>
             </Button>
 
             {/* Mobile Hamburger Menu Toggle */}

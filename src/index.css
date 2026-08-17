@@ -33,6 +33,7 @@
 @import "tailwindcss";
 
 @theme {
+  --breakpoint-xs: 480px;
   --color-brand-50: #f0f6fc;
   --color-brand-100: #dce9f8;
   --color-brand-200: #b8d7f5;
